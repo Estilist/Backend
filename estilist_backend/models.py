@@ -4,7 +4,7 @@ from django.db import models
 
 class Usuarios(models.Model):
     idusuario = models.AutoField(db_column='IdUsuario', primary_key=True)  # Field name made lowercase.
-    idlogin = models.ForeignKey('auth.User', models.DO_NOTHING, db_column='id', blank=True, null=True)  # Field name made lowercase.
+    contrasena = models.CharField(db_column='Contrasena', max_length=150, blank=True, null=True)  # Field name made lowercase.
     nombre = models.CharField(db_column='Nombre', max_length=100, blank=True, null=True)  # Field name made lowercase.
     apellidopaterno = models.CharField(db_column='ApellidoPaterno', max_length=100, blank=True, null=True)  # Field name made lowercase.
     apellidomaterno = models.CharField(db_column='ApellidoMaterno', max_length=100, blank=True, null=True)  # Field name made lowercase.
