@@ -7,7 +7,7 @@ from django.http import JsonResponse
 import json
 from django.contrib.auth.models import User as auth
 import datetime
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.db import IntegrityError
 
 class UsuariosViewSet(viewsets.ModelViewSet):
@@ -62,26 +62,24 @@ class CheckUser(View):
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
         username = data.get('correo')
         password = data.get('contrasena')
 
         try:
-            user = auth.objects.get(username=username)
-        except auth.DoesNotExist:
+            user = Usuarios.objects.get(correo=username)
+        except:
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
-        if user.check_password(password):
+        if  check_password(password, user.contrasena):
             hora_actual = datetime.datetime.now()
-            user.last_login = hora_actual.isoformat()
+            user.last_login = hora_actual
             try:
                 user.save()
             except Exception:
                 return JsonResponse({'error': 'Error al actualizar la fecha de ultimo acceso'}, status=500)
-            try:
-                owner = Usuarios.objects.get(idlogin=user)
-            except Usuarios.DoesNotExist:
-                return JsonResponse({'error': 'Falla de validacion en la creacion del usuario, accedio al registro mas no se registro en la tabla Usuarios'}, status=404)
-            return JsonResponse({'idUsuario': owner.idusuario}, status=200)
+            return JsonResponse({'idUsuario': user.idusuario,
+                                 'login': user.last_login}, status=200)
         else:
             return JsonResponse({'error': 'Contraseña incorrecta'}, status=401)
 
