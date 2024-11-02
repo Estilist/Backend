@@ -14,6 +14,7 @@ class Usuarios(models.Model):
     tiporostro = models.CharField(db_column='TipoRostro', max_length=50, blank=True, null=True)  # Field name made lowercase.
     tipocuerpo = models.CharField(db_column='TipoCuerpo', max_length=50, blank=True, null=True)  # Field name made lowercase.
     fecharegistro = models.DateTimeField(db_column='FechaRegistro', blank=True, null=True)  # Field name made lowercase.
+    ultimoacceso = models.DateTimeField(db_column='UltimoAcceso', blank=True, null=True)  # Field name made lowercase.
     pais = models.CharField(db_column='Pais', max_length=50, blank=True, null=True)  # Field name made lowercase.
     estado = models.BooleanField(db_column='Estado', blank=True, null=True)  # Field name made lowercase.
 
