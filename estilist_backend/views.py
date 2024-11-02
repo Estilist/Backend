@@ -2,7 +2,6 @@ from rest_framework import viewsets
 from .models import Usuarios
 from .serializers import UsuariosSerializer, AuthUserSerialize
 from django.contrib.auth.models import User
-from django.http import HttpResponse
 from django.views import View
 from django.http import JsonResponse
 import json
@@ -41,7 +40,7 @@ class CreateUser(View):
                 edad=data.get('edad'),
                 genero=data.get('genero'),
                 pais=data.get('pais'),
-                fecharegistro=data.get('fecharegistro'),
+                fecharegistro=hora_actual.isoformat(),
                 estado=True
             )
         except Exception as e:
@@ -74,8 +73,36 @@ class CreateUser(View):
             except Exception:
                 return JsonResponse({'error' : 'Error eliminar usuario personalizado no completa'}, status=500)
 
-            return JsonResponse({'error' : 'Error al crear un usuario'}, status=500)
+        return JsonResponse({'error' : 'Error al crear un usuario'}, status=500)
         
+class CheckUser(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        username = data.get('correo')
+        password = data.get('contrasena')
+        
+        try:
+            user = auth.objects.get(username=username)
+        except auth.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        if user.check_password(password):
+            hora_actual = datetime.datetime.now()
+            user.last_login = hora_actual.isoformat()
+            try:
+                user.save()
+            except Exception:
+                return JsonResponse({'error': 'Error al actualizar la fecha de ultimo acceso'}, status=500)
+            try:
+                owner = Usuarios.objects.get(idlogin=user)
+            except Usuarios.DoesNotExist:
+                return JsonResponse({'error': 'Falla de validacion en la creacion del usuario, accedio al registro mas no se registro en la tabla Usuarios'}, status=404)
+            return JsonResponse({'idUsuario': owner.idusuario}, status=200)
+        else:
+            return JsonResponse({'error': 'Contraseña incorrecta'}, status=401)
         
 class CrearSuperUsuario(View):
     def post(self, request):
