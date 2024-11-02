@@ -7,74 +7,55 @@ from django.http import JsonResponse
 import json
 from django.contrib.auth.models import User as auth
 import datetime
-
+from django.contrib.auth.hashers import make_password
+from django.db import IntegrityError
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
     serializer_class = UsuariosSerializer
 
+
 class AuthUserViewSet (viewsets.ModelViewSet):
     queryset = auth.objects.all()
     serializer_class = AuthUserSerialize
 
+
 class CreateUser(View):
     def post(self, request):
-        # Leer el JSON del cuerpo de la solicitud
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
         password = data.get('contrasena')
-        email = data.get('correo')
-        username = email
-    
-        # Intenta crear el objeto de Usuarios
+        password_hashed = make_password(
+        password, salt=None, hasher='pbkdf2_sha256')
+        hora_actual = datetime.datetime.now()
         try:
-            hora_actual = datetime.datetime.now()
-            usuario_personalizado = Usuarios(
-                nombre=data.get('nombre'),
-                apellidopaterno=data.get('apellidopaterno'),
-                apellidomaterno=data.get('apellidomaterno'),
-                correo=email,
-                edad=data.get('edad'),
-                genero=data.get('genero'),
-                pais=data.get('pais'),
-                fecharegistro=hora_actual.isoformat(),
-                estado=True
+            usuario, created = Usuarios.objects.get_or_create(
+                correo=data.get('correo'),
+                defaults={
+                    'contrasena': password_hashed,
+                    'nombre': data.get('nombre'),
+                    'apellidopaterno': data.get('apellidopaterno'),
+                    'apellidomaterno': data.get('apellidomaterno'),
+                    'edad': data.get('edad'),
+                    'genero': data.get('genero'),
+                    'fecharegistro': hora_actual,
+                    'ultimoacceso': hora_actual,
+                    'pais': data.get('pais'),
+                    'estado': True
+                }
             )
-        except Exception as e:
-                        return JsonResponse({'error' : 'Error al crear el usuario personalizado'}, status=400)
-
+        except Exception:
+            return JsonResponse({'error': 'Error al crear el usuario'}, status=500)
         
-        try:
-            usuario_personalizado.save()
-        except Exception as e:
-                        return JsonResponse({'error' : 'Error al guardar el usuario personalizado en la base de datos',
-                                             'causa' : 'Valores repetidos'}, status=400)
+        if not created:
+            return JsonResponse({'error': 'El usuario ya existe',
+                                 'idUsuario': Usuarios.objects.get(correo=data.get('correo')).idusuario}, status=400)
+        return JsonResponse({'message': 'Usuario creado con éxito',
+                                'idUsuario': usuario.idusuario}, status=201)   
 
-
-        try:
-            usuario_auth = User.objects.create_user(
-                username=username,
-                password=password,
-                email=email,
-                last_name=data.get('apellidopaterno'),
-                first_name=data.get('nombre'),  
-                date_joined=hora_actual.isoformat()
-            )
-            usuario_personalizado.idlogin = usuario_auth
-            usuario_personalizado.save()  
-
-            return JsonResponse({'idUsuario': usuario_personalizado.idusuario}, status=201)
-        except Exception as e:
-            try:
-                usuario_personalizado.delete()  
-            except Exception:
-                return JsonResponse({'error' : 'Error eliminar usuario personalizado no completa'}, status=500)
-
-        return JsonResponse({'error' : 'Error al crear un usuario'}, status=500)
-        
 class CheckUser(View):
     def post(self, request):
         try:
@@ -83,12 +64,12 @@ class CheckUser(View):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         username = data.get('correo')
         password = data.get('contrasena')
-        
+
         try:
             user = auth.objects.get(username=username)
         except auth.DoesNotExist:
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-        
+
         if user.check_password(password):
             hora_actual = datetime.datetime.now()
             user.last_login = hora_actual.isoformat()
@@ -103,7 +84,8 @@ class CheckUser(View):
             return JsonResponse({'idUsuario': owner.idusuario}, status=200)
         else:
             return JsonResponse({'error': 'Contraseña incorrecta'}, status=401)
-        
+
+
 class CrearSuperUsuario(View):
     def post(self, request):
         # Leer el JSON del cuerpo de la solicitud
