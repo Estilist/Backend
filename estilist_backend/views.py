@@ -88,14 +88,14 @@ class UserMeasurements(View):
     def BodyType(self, sexo, pecho, cadera, cintura):
                     
             proporciones = {
-                'masculino': {
+                'Masculino': {
                     'Rectángulo': (90, 85, 90),
                     'Triángulo Invertido (V)': (105, 80, 90),
                     'Ovalado (Manzana)': (100, 95, 90),
                     'Trapecio (Triangular)': (105, 90, 95),
                     'Mesomorfo': (100, 85, 95)
                 },
-                'femenino': {
+                'Femenino': {
                     'Reloj de Arena': (90, 60, 90),
                     'Rectangular': (85, 75, 85),
                     'Triángulo (Pera)': (80, 70, 100),
@@ -165,10 +165,18 @@ class UserMeasurements(View):
                 user_medidas.save()
             except:
                 return JsonResponse({'error': 'Error al actualizar las medidas'}, status=500)
+            user.tipocuerpo = self.BodyType(user.genero, user_medidas.pecho, user_medidas.cadera, user_medidas.cintura)
+            try:
+                user.save()
+            except:
+                return JsonResponse({'error': 'Error al actualizar el tipo de cuerpo'}, status=500)
             return JsonResponse({'message': 'Medidas actualizadas con exito'}, status=200)
         
-        
-        
+        user.tipocuerpo = self.BodyType(user.genero, user_medidas.pecho, user_medidas.cadera, user_medidas.cintura)
+        try:
+            user.save()
+        except:
+            return JsonResponse({'error': 'Error al actualizar el tipo de cuerpo'}, status=500)
         return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
         
             
