@@ -1,7 +1,6 @@
 from rest_framework import viewsets
-from .models import Usuarios
+from .models import Usuarios, Medidas
 from .serializers import UsuariosSerializer, AuthUserSerialize
-from django.contrib.auth.models import User
 from django.views import View
 from django.http import JsonResponse
 import json
@@ -83,42 +82,50 @@ class CheckUser(View):
         else:
             return JsonResponse({'error': 'Contraseña incorrecta'}, status=401)
 
-
-class CrearSuperUsuario(View):
+class UserMeasurements(View):
     def post(self, request):
-        # Leer el JSON del cuerpo de la solicitud
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        id = data.get('idusuario')
+        try:
+            user = Usuarios.objects.get(idusuario= id)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        try:
+            user_medidas, created = Medidas.objects.get_or_create(
+                idusuario=user,
+                defaults={
+                    'altura': data.get('altura'),
+                    'peso': data.get('peso'),
+                    'pecho': data.get('pecho'),
+                    'cintura': data.get('cintura'),
+                    'cadera': data.get('cadera'),
+                    'entrepierna': data.get('entrepierna'),
+                    'fechaactualizacion': datetime.datetime.now()
+                }
+            )
+        except:
+            return JsonResponse({'error': 'Error al crear las medidas'}, status=500)
+        
+        if not created:
+            user_medidas.altura = data.get('altura')
+            user_medidas.peso = data.get('peso')
+            user_medidas.pecho = data.get('pecho')
+            user_medidas.cintura = data.get('cintura')
+            user_medidas.cadera = data.get('cadera')
+            user_medidas.entrepierna = data.get('entrepierna')
+            user_medidas.fechaactualizacion = datetime.datetime.now()
+            try:
+                user_medidas.save()
+            except:
+                return JsonResponse({'error': 'Error al actualizar las medidas'}, status=500)
+            return JsonResponse({'message': 'Medidas actualizadas con exito'}, status=200)
+        
+        return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
+            
+       
 
-        username = data.get('username')
-        password = data.get('password')
-        email = data.get('email')
-
-        if not username:
-            return JsonResponse({'error': 'The given username must be set'}, status=400)
-
-        # Crea el usuario
-        usuario_auth = User.objects.create_user(
-            username=username,
-            password=password,
-            email=email
-        )
-
-        # Crea el objeto de Usuarios y relaciona
-        usuario_personalizado = Usuarios.objects.create(
-            idlogin=usuario_auth,
-            nombre=data.get('nombre'),
-            apellidopaterno=data.get('apellidopaterno'),
-            apellidomaterno=data.get('apellidomaterno'),
-            correo=email,
-            edad=data.get('edad'),
-            genero=data.get('genero'),
-            tiporostro=data.get('tiporostro'),
-            tipocuerpo=data.get('tipocuerpo'),
-            fecharegistro=data.get('fecharegistro'),
-            estado=True
-        )
-
-        return JsonResponse({'message': 'Usuario creado con éxito'}, status=201)
