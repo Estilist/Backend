@@ -81,8 +81,50 @@ class CheckUser(View):
                                  'login': user.last_login}, status=200)
         else:
             return JsonResponse({'error': 'Contraseña incorrecta'}, status=401)
+        
+   
 
 class UserMeasurements(View):
+    def BodyType(self, sexo, pecho, cadera, cintura):
+                    
+            proporciones = {
+                'masculino': {
+                    'Rectángulo': (90, 85, 90),
+                    'Triángulo Invertido (V)': (105, 80, 90),
+                    'Ovalado (Manzana)': (100, 95, 90),
+                    'Trapecio (Triangular)': (105, 90, 95),
+                    'Mesomorfo': (100, 85, 95)
+                },
+                'femenino': {
+                    'Reloj de Arena': (90, 60, 90),
+                    'Rectangular': (85, 75, 85),
+                    'Triángulo (Pera)': (80, 70, 100),
+                    'Triángulo Invertido': (100, 75, 85),
+                    'Ovalado (Manzana)': (95, 85, 95),
+                    'Atlético': (90, 70, 85)
+                }
+            }
+            
+            puntuaciones = {}
+            
+            for tipo, medidas in proporciones[sexo].items():
+                ideal_pecho, ideal_cintura, ideal_cadera = medidas
+                puntuacion = 0
+                
+                # Comparar cada medida con la medida ideal
+                if pecho:
+                    puntuacion += max(0, 100 - abs(pecho - ideal_pecho))
+                if cintura:
+                    puntuacion += max(0, 100 - abs(cintura - ideal_cintura))
+                if cadera:
+                    puntuacion += max(0, 100 - abs(cadera - ideal_cadera))
+                
+                puntuaciones[tipo] = puntuacion
+            
+            tipo_cuerpo = max(puntuaciones, key=puntuaciones.get)
+            
+            return tipo_cuerpo    
+        
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -125,7 +167,11 @@ class UserMeasurements(View):
                 return JsonResponse({'error': 'Error al actualizar las medidas'}, status=500)
             return JsonResponse({'message': 'Medidas actualizadas con exito'}, status=200)
         
+        
+        
         return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
+        
             
-       
+
+   
 
