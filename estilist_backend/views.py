@@ -88,14 +88,14 @@ class UserMeasurements(View):
     def BodyType(self, sexo, pecho, cadera, cintura):
                     
             proporciones = {
-                'Masculino': {
+                'male': {
                     'Rectángulo': (90, 85, 90),
                     'Triángulo Invertido (V)': (105, 80, 90),
                     'Ovalado (Manzana)': (100, 95, 90),
                     'Trapecio (Triangular)': (105, 90, 95),
                     'Mesomorfo': (100, 85, 95)
                 },
-                'Femenino': {
+                'female': {
                     'Reloj de Arena': (90, 60, 90),
                     'Rectangular': (85, 75, 85),
                     'Triángulo (Pera)': (80, 70, 100),
