@@ -16,6 +16,7 @@ class UsuariosViewSet(viewsets.ModelViewSet):
 class MeauserementsViewSet(viewsets.ModelViewSet):
     queryset = Medidas.objects.all()
     serializer_class = MeasuerementsSerializer
+    lookup_field = 'idusuario'
 
 class AuthUserViewSet (viewsets.ModelViewSet):
     queryset = auth.objects.all()
