@@ -1,11 +1,10 @@
 from django.urls import path, include
 from rest_framework import routers
-from estilist_backend.views import CreateUser, UsuariosViewSet, CheckUser, AuthUserViewSet, MeauserementsViewSet, UserMeasurements, FacialRecognition
+from estilist_backend.views import CreateUser, UsuariosViewSet, CheckUser, MeauserementsViewSet, UserMeasurements, FacialRecognition
 
 router = routers.DefaultRouter()    
 router.register(r'users', UsuariosViewSet)
 router.register(r'measurements', MeauserementsViewSet)
-router.register(r'auth', AuthUserViewSet)
 
 
 urlpatterns = [

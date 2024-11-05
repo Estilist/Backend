@@ -6,11 +6,11 @@ from .models import Usuarios, Medidas
 from .serializers import UsuariosSerializer, AuthUserSerialize, MeasuerementsSerializer
 from django.views import View
 from django.http import JsonResponse
-import json
-from django.contrib.auth.models import User as auth
-import datetime
 from django.contrib.auth.hashers import make_password, check_password
+from keras.models import load_model # keras
 from PIL import Image
+import gdown, os, cv2, json, datetime, numpy as np
+from estilist_backend.functions import Functions
 
 
 class UsuariosViewSet(viewsets.ModelViewSet):
@@ -21,11 +21,6 @@ class MeauserementsViewSet(viewsets.ModelViewSet):
     queryset = Medidas.objects.all()
     serializer_class = MeasuerementsSerializer
     lookup_field = 'idusuario'
-
-class AuthUserViewSet (viewsets.ModelViewSet):
-    queryset = auth.objects.all()
-    serializer_class = AuthUserSerialize
-
 
 class CreateUser(View):
     def post(self, request):
@@ -89,8 +84,6 @@ class CheckUser(View):
                                  'login': user.last_login}, status=200)
         else:
             return JsonResponse({'error': 'Contraseña incorrecta'}, status=401)
-        
-   
 
 class UserMeasurements(View):
     def BodyType(self, sexo, pecho, cadera, cintura):
@@ -186,8 +179,6 @@ class UserMeasurements(View):
         except:
             return JsonResponse({'error': 'Error al actualizar el tipo de cuerpo'}, status=500)
         return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
-        
-            
 
 class FacialRecognition(APIView):
     parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
@@ -198,6 +189,34 @@ class FacialRecognition(APIView):
         try:
             img = Image.open(image_file)
             img.verify()  # Esto lanza una excepción si el archivo no es una imagen válida
+            image_file.seek(0)
         except (IOError, SyntaxError) as e:
             return Response({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK)
+        # return Response({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK) CHANGE LATER
+        
+        shape_model_url = "https://drive.google.com/uc?id=1JnAi2DVwt0_XbVpRcpVN3pQgR_8xGHuK"
+
+        shape_model_path = "estilist_backend/Models/shape.h5"
+
+        if not os.path.exists(shape_model_path):
+            gdown.download(shape_model_url, shape_model_path, quiet=False)
+
+        shape_model = load_model(shape_model_path)
+
+        image_data = image_file.read()
+        
+        image_array = np.fromstring(image_data, np.uint8)
+        
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        
+        preprocessed_shape_image = Functions.preprocess(image)
+        shape_predictions = Functions.predict_shape(preprocessed_shape_image, shape_model)
+        skin_tone_palette = Functions.extract_skin_tone(image)
+
+        return JsonResponse({
+                "forma": shape_predictions[0],
+                "tono_piel": skin_tone_palette,
+            }
+        )
+
+      
