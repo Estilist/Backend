@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import Usuarios, Medidas
-from .serializers import UsuariosSerializer, AuthUserSerialize
+from .serializers import UsuariosSerializer, AuthUserSerialize, MeasuerementsSerializer
 from django.views import View
 from django.http import JsonResponse
 import json
@@ -13,6 +13,10 @@ class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
     serializer_class = UsuariosSerializer
 
+class MeauserementsViewSet(viewsets.ModelViewSet):
+    queryset = Medidas.objects.all()
+    serializer_class = MeasuerementsSerializer
+    lookup_field = 'idusuario'
 
 class AuthUserViewSet (viewsets.ModelViewSet):
     queryset = auth.objects.all()
@@ -180,6 +184,3 @@ class UserMeasurements(View):
         return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
         
             
-
-   
-
