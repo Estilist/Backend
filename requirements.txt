@@ -13,4 +13,12 @@ sqlparse==0.5.1
 tzdata==2024.2
 urllib3==2.2.3
 django-cors-headers==4.6.0
-Pillow==10.0.0
+pillow
+opencv-python
+numpy
+keras
+python-multipart
+tensorflow
+skin-tone-classifier
+gdown
+requests
