@@ -1,4 +1,7 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Usuarios, Medidas
 from .serializers import UsuariosSerializer, AuthUserSerialize, MeasuerementsSerializer
 from django.views import View
@@ -7,7 +10,8 @@ import json
 from django.contrib.auth.models import User as auth
 import datetime
 from django.contrib.auth.hashers import make_password, check_password
-from django.db import IntegrityError
+from PIL import Image
+
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -184,3 +188,16 @@ class UserMeasurements(View):
         return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
         
             
+
+class FacialRecognition(APIView):
+    parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
+    def post(self, request):
+        image_file = request.data.get('image')
+        if image_file is None:
+            return Response({'error': 'No se ha enviado ninguna imagen'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            img = Image.open(image_file)
+            img.verify()  # Esto lanza una excepción si el archivo no es una imagen válida
+        except (IOError, SyntaxError) as e:
+            return Response({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK)
