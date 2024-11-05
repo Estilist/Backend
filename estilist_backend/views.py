@@ -1,113 +1,203 @@
-from rest_framework import viewsets
-from .models import Usuarios
-from .serializers import UsuariosSerializer, AuthUserSerialize
-from django.contrib.auth.models import User
-from django.http import HttpResponse
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from .models import Usuarios, Medidas
+from .serializers import UsuariosSerializer, AuthUserSerialize, MeasuerementsSerializer
 from django.views import View
 from django.http import JsonResponse
 import json
 from django.contrib.auth.models import User as auth
 import datetime
+from django.contrib.auth.hashers import make_password, check_password
+from PIL import Image
 
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
     serializer_class = UsuariosSerializer
 
+class MeauserementsViewSet(viewsets.ModelViewSet):
+    queryset = Medidas.objects.all()
+    serializer_class = MeasuerementsSerializer
+    lookup_field = 'idusuario'
+
 class AuthUserViewSet (viewsets.ModelViewSet):
     queryset = auth.objects.all()
     serializer_class = AuthUserSerialize
 
+
 class CreateUser(View):
     def post(self, request):
-        # Leer el JSON del cuerpo de la solicitud
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
         password = data.get('contrasena')
-        email = data.get('correo')
-        username = email
-    
-        # Intenta crear el objeto de Usuarios
+        password_hashed = make_password(
+        password, salt=None, hasher='pbkdf2_sha256')
+        hora_actual = datetime.datetime.now()
         try:
-            hora_actual = datetime.datetime.now()
-            usuario_personalizado = Usuarios(
-                nombre=data.get('nombre'),
-                apellidopaterno=data.get('apellidopaterno'),
-                apellidomaterno=data.get('apellidomaterno'),
-                correo=email,
-                edad=data.get('edad'),
-                genero=data.get('genero'),
-                pais=data.get('pais'),
-                fecharegistro=data.get('fecharegistro'),
-                estado=True
+            usuario, created = Usuarios.objects.get_or_create(
+                correo=data.get('correo'),
+                defaults={
+                    'contrasena': password_hashed,
+                    'nombre': data.get('nombre'),
+                    'apellidopaterno': data.get('apellidopaterno'),
+                    'apellidomaterno': data.get('apellidomaterno'),
+                    'edad': data.get('edad'),
+                    'genero': data.get('genero'),
+                    'fecharegistro': hora_actual,
+                    'ultimoacceso': hora_actual,
+                    'pais': data.get('pais'),
+                    'estado': True
+                }
             )
-        except Exception as e:
-            return HttpResponse(f'Error al crear el objeto Usuarios: {str(e)}', status=400)
+        except Exception:
+            return JsonResponse({'error': 'Error al crear el usuario'}, status=500)
         
-        try:
-            usuario_personalizado.save()
-        except Exception as e:
-            return HttpResponse(f'Error al crear el usuario personalizado: {str(e)}', status=400)
+        if not created:
+            return JsonResponse({'error': 'El usuario ya existe',
+                                 'idUsuario': Usuarios.objects.get(correo=data.get('correo')).idusuario}, status=400)
+        return JsonResponse({'message': 'Usuario creado con éxito',
+                                'idUsuario': usuario.idusuario}, status=201)   
 
-        try:
-            usuario_auth = User.objects.create_user(
-                username=username,
-                password=password,
-                email=email,
-                last_name=data.get('apellidopaterno'),
-                first_name=data.get('nombre'),  
-                date_joined=hora_actual.isoformat()
-            )
-            usuario_personalizado.idlogin = usuario_auth
-            usuario_personalizado.save()  
-
-            return JsonResponse({'idUsuario': usuario_personalizado.idusuario}, status=201)
-        except Exception as e:
-            try:
-                usuario_personalizado.delete()  
-            except Exception as delete_exception:
-                return HttpResponse(f'Error al eliminar el usuario personalizado: {str(delete_exception)}', status=500)
-
-            return HttpResponse(f'Error al crear el usuario de autenticación: {str(e)} {username}', status=400)
-        
-class CrearSuperUsuario(View):
+class CheckUser(View):
     def post(self, request):
-        # Leer el JSON del cuerpo de la solicitud
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        username = data.get('correo')
+        password = data.get('contrasena')
 
-        username = data.get('username')
-        password = data.get('password')
-        email = data.get('email')
+        try:
+            user = Usuarios.objects.get(correo=username)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
-        if not username:
-            return JsonResponse({'error': 'The given username must be set'}, status=400)
+        if  check_password(password, user.contrasena):
+            hora_actual = datetime.datetime.now()
+            user.last_login = hora_actual
+            try:
+                user.save()
+            except Exception:
+                return JsonResponse({'error': 'Error al actualizar la fecha de ultimo acceso'}, status=500)
+            return JsonResponse({'idUsuario': user.idusuario,
+                                 'login': user.last_login}, status=200)
+        else:
+            return JsonResponse({'error': 'Contraseña incorrecta'}, status=401)
+        
+   
 
-        # Crea el usuario
-        usuario_auth = User.objects.create_user(
-            username=username,
-            password=password,
-            email=email
-        )
+class UserMeasurements(View):
+    def BodyType(self, sexo, pecho, cadera, cintura):
+                    
+            proporciones = {
+                'male': {
+                    'Rectángulo': (90, 85, 90),
+                    'Triángulo Invertido (V)': (105, 80, 90),
+                    'Ovalado (Manzana)': (100, 95, 90),
+                    'Trapecio (Triangular)': (105, 90, 95),
+                    'Mesomorfo': (100, 85, 95)
+                },
+                'female': {
+                    'Reloj de Arena': (90, 60, 90),
+                    'Rectangular': (85, 75, 85),
+                    'Triángulo (Pera)': (80, 70, 100),
+                    'Triángulo Invertido': (100, 75, 85),
+                    'Ovalado (Manzana)': (95, 85, 95),
+                    'Atlético': (90, 70, 85)
+                }
+            }
+            
+            puntuaciones = {}
+            
+            for tipo, medidas in proporciones[sexo].items():
+                ideal_pecho, ideal_cintura, ideal_cadera = medidas
+                puntuacion = 0
+                
+                # Comparar cada medida con la medida ideal
+                if pecho:
+                    puntuacion += max(0, 100 - abs(pecho - ideal_pecho))
+                if cintura:
+                    puntuacion += max(0, 100 - abs(cintura - ideal_cintura))
+                if cadera:
+                    puntuacion += max(0, 100 - abs(cadera - ideal_cadera))
+                
+                puntuaciones[tipo] = puntuacion
+            
+            tipo_cuerpo = max(puntuaciones, key=puntuaciones.get)
+            
+            return tipo_cuerpo    
+        
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        id = data.get('idusuario')
+        try:
+            user = Usuarios.objects.get(idusuario= id)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        try:
+            user_medidas, created = Medidas.objects.get_or_create(
+                idusuario=user,
+                defaults={
+                    'altura': data.get('altura'),
+                    'peso': data.get('peso'),
+                    'pecho': data.get('pecho'),
+                    'cintura': data.get('cintura'),
+                    'cadera': data.get('cadera'),
+                    'entrepierna': data.get('entrepierna'),
+                    'fechaactualizacion': datetime.datetime.now()
+                }
+            )
+        except:
+            return JsonResponse({'error': 'Error al crear las medidas'}, status=500)
+        
+        if not created:
+            user_medidas.altura = data.get('altura')
+            user_medidas.peso = data.get('peso')
+            user_medidas.pecho = data.get('pecho')
+            user_medidas.cintura = data.get('cintura')
+            user_medidas.cadera = data.get('cadera')
+            user_medidas.entrepierna = data.get('entrepierna')
+            user_medidas.fechaactualizacion = datetime.datetime.now()
+            try:
+                user_medidas.save()
+            except:
+                return JsonResponse({'error': 'Error al actualizar las medidas'}, status=500)
+            user.tipocuerpo = self.BodyType(user.genero, user_medidas.pecho, user_medidas.cadera, user_medidas.cintura)
+            try:
+                user.save()
+            except:
+                return JsonResponse({'error': 'Error al actualizar el tipo de cuerpo'}, status=500)
+            return JsonResponse({'message': 'Medidas actualizadas con exito'}, status=200)
+        
+        user.tipocuerpo = self.BodyType(user.genero, user_medidas.pecho, user_medidas.cadera, user_medidas.cintura)
+        try:
+            user.save()
+        except:
+            return JsonResponse({'error': 'Error al actualizar el tipo de cuerpo'}, status=500)
+        return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
+        
+            
 
-        # Crea el objeto de Usuarios y relaciona
-        usuario_personalizado = Usuarios.objects.create(
-            idlogin=usuario_auth,
-            nombre=data.get('nombre'),
-            apellidopaterno=data.get('apellidopaterno'),
-            apellidomaterno=data.get('apellidomaterno'),
-            correo=email,
-            edad=data.get('edad'),
-            genero=data.get('genero'),
-            tiporostro=data.get('tiporostro'),
-            tipocuerpo=data.get('tipocuerpo'),
-            fecharegistro=data.get('fecharegistro'),
-            estado=True
-        )
-
-        return JsonResponse({'message': 'Usuario creado con éxito'}, status=201)
+class FacialRecognition(APIView):
+    parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
+    def post(self, request):
+        image_file = request.data.get('image')
+        if image_file is None:
+            return Response({'error': 'No se ha enviado ninguna imagen'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            img = Image.open(image_file)
+            img.verify()  # Esto lanza una excepción si el archivo no es una imagen válida
+        except (IOError, SyntaxError) as e:
+            return Response({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK)
