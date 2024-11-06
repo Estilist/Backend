@@ -7,14 +7,11 @@ from .serializers import UsuariosSerializer, AuthUserSerialize, MeasuerementsSer
 from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
-from keras.models import load_model # keras
+# from keras.models import load_model # keras
 from PIL import Image
 import os, cv2, json, datetime, numpy as np
-from estilist_backend.functions import Functions
-from azure.storage.blob import BlobServiceClient
 from django.conf import settings
 import os
-from tensorflow.keras.models import load_model
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
