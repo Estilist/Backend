@@ -1,16 +1,15 @@
 from rest_framework import viewsets, status
-from .models import Usuarios, Medidas
+from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from PIL import Image
+from .models import Usuarios, Medidas, Preferencias
 from .serializers import UsuariosSerializer, MeasuerementsSerializer
 from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 import json, datetime
 import os
-from rest_framework.exceptions import MethodNotAllowed
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from PIL import Image
-from rest_framework.response import Response
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -197,76 +196,49 @@ class FacialRecognition(APIView):
             return JsonResponse({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
         return JsonResponse({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK)
 
+class UserPreferences(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
         
-#         BLOB_CONNECTION_STRING = os.getenv('BLOB_CONNECTION_STRING')
-#         CONTAINER_NAME = 'models'
-#         BLOB_NAME = 'shape.h5'
-#         LOCAL_MODEL_PATH = 'estilist_backend/Models/shape.h5'
+        id = data.get('idusuario')
+        try:
+            user = Usuarios.objects.get(idusuario= id)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
         
-#         if not os.path.exists(LOCAL_MODEL_PATH):  # Evita descargas repetidas
-#             blob_service_client = BlobServiceClient.from_connection_string(BLOB_CONNECTION_STRING)
-#             blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=BLOB_NAME)
-            
-#             # Descargar el blob y guardarlo en el sistema de archivos
-#             with open(LOCAL_MODEL_PATH, "wb") as model_file:
-#                 model_file.write(blob_client.download_blob().readall())
-#             print("Modelo descargado y almacenado en:", LOCAL_MODEL_PATH)
-
-#         shape_model = load_model(LOCAL_MODEL_PATH)
+        try:
+            user_preferences, created = Preferencias.objects.get_or_create(
+                idusuario=user,
+                defaults={
+                    'ajusteropa': data.get('ajusteropa'),
+                    'tintecabello': data.get('tintecabello'),
+                    'cortecabello': data.get('cortecabello'),
+                    'accesorios': data.get('accesorios'),
+                    'joyeria': data.get('joyeria'),
+                    'ropa': data.get('ropa'),
+                    'maquillaje': data.get('maquillaje'),
+                    'recomendaciones': data.get('recomendaciones')
+                }
+            )
+        except:
+            return JsonResponse({'error': 'Error al crear las preferencias'}, status=500)
         
-#         image_data = image_file.read()
+        if not created:
+            user_preferences.ajusteropa = data.get('ajusteropa')
+            user_preferences.tintecabello = data.get('tintecabello')
+            user_preferences.cortecabello = data.get('cortecabello')
+            user_preferences.accesorios = data.get('accesorios')
+            user_preferences.joyeria = data.get('joyeria')
+            user_preferences.ropa = data.get('ropa')
+            user_preferences.maquillaje = data.get('maquillaje')
+            user_preferences.recomendaciones = data.get('recomendaciones')
+            try:
+                user_preferences.save()
+            except:
+                return JsonResponse({'error': 'Error al actualizar las preferencias'}, status=500)
+            return JsonResponse({'message': 'Preferencias actualizadas con exito'}, status=200)
         
-#         image_array = np.fromstring(image_data, np.uint8)
-        
-#         image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-        
-#         preprocessed_shape_image = Functions.preprocess(image)
-#         shape_predictions = Functions.predict_shape(preprocessed_shape_image, shape_model)
-#         skin_tone_palette = Functions.extract_skin_tone(image)
-
-#         return JsonResponse({
-#                 "forma": shape_predictions[0],
-#                 "tono_piel": skin_tone_palette,
-#             }
-#         )
-
-# class UserPreferences(APIView):
-#     def post(self, request):
-#         try:
-#             data = json.loads(request.body)
-#         except json.JSONDecodeError:
-#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
-        
-#         id = data.get('idusuario')
-#         try:
-#             user = Usuarios.objects.get(idusuario= id)
-#         except:
-#             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-        
-#         try:
-#             user_preferences, created = Preferencias.objects.get_or_create(
-#                 idusuario=user,
-#                 defaults={
-#                     'ajusteropa': data.get('ajusteropa'),
-#                     'ropa': data.get('ropa'),
-#                     'pantalon': data.get('pantalon'),
-#                     'joyeria': data.get('joyeria'),
-#                     'calzado': data.get('calzado')
-#                 }
-#             )
-#         except:
-#             return JsonResponse({'error': 'Error al crear las preferencias'}, status=500)
-        
-#         if not created:
-#             user_preferences.ajusteropa = data.get('ajusteropa')
-#             user_preferences.ropa = data.get('ropa')
-#             user_preferences.pantalon = data.get('pantalon')
-#             user_preferences.joyeria = data.get('joyeria')
-#             user_preferences.calzado = data.get('calzado')
-#             try:
-#                 user_preferences.save()
-#             except:
-#                 return JsonResponse({'error': 'Error al actualizar las preferencias'}, status=500)
-#             return JsonResponse({'message': 'Preferencias actualizadas con exito'}, status=200)
-        
-#         return JsonResponse({'message': 'Preferencias creadas con exito'}, status=201)
+        return JsonResponse({'message': 'Preferencias creadas con exito'}, status=201)
