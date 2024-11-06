@@ -6,15 +6,25 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 import json, datetime
 import os
+from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from PIL import Image
+from rest_framework.response import Response
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
     serializer_class = UsuariosSerializer
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")
 
 class MeauserementsViewSet(viewsets.ModelViewSet):
+    
     queryset = Medidas.objects.all()
     serializer_class = MeasuerementsSerializer
     lookup_field = 'idusuario'
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")
 
 class CreateUser(View):
     def post(self, request):
@@ -173,19 +183,19 @@ class UserMeasurements(View):
             return JsonResponse({'error': 'Error al actualizar el tipo de cuerpo'}, status=500)
         return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
 
-# class FacialRecognition(APIView):
-#     parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
-#     def post(self, request):
-#         image_file = request.data.get('image')
-#         if image_file is None:
-#             return Response({'error': 'No se ha enviado ninguna imagen'}, status=status.HTTP_400_BAD_REQUEST)
-#         try:
-#             img = Image.open(image_file)
-#             img.verify()  # Esto lanza una excepción si el archivo no es una imagen válida
-#             image_file.seek(0)
-#         except (IOError, SyntaxError) as e:
-#             return Response({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
-#         # return Response({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK) CHANGE LATER
+class FacialRecognition(APIView):
+    parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
+    def post(self, request):
+        image_file = request.data.get('image')
+        if image_file is None:
+            return Response({'error': 'No se ha enviado ninguna imagen'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            img = Image.open(image_file)
+            img.verify()  # Esto lanza una excepción si el archivo no es una imagen válida
+            image_file.seek(0)
+        except (IOError, SyntaxError) as e:
+            return Response({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
+        # return Response({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK) CHANGE LATER
         
 #         BLOB_CONNECTION_STRING = os.getenv('BLOB_CONNECTION_STRING')
 #         CONTAINER_NAME = 'models'

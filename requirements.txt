@@ -11,6 +11,7 @@ idna
 psycopg2
 requests
 sqlparse
+Pillow
 tzdata
 urllib3
 django-cors-headers
