@@ -1,16 +1,10 @@
 from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Usuarios, Medidas
-from .serializers import UsuariosSerializer, AuthUserSerialize, MeasuerementsSerializer
+from .serializers import UsuariosSerializer, MeasuerementsSerializer
 from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
-# from keras.models import load_model # keras
-from PIL import Image
-import os, cv2, json, datetime, numpy as np
-from django.conf import settings
+import json, datetime
 import os
 
 class UsuariosViewSet(viewsets.ModelViewSet):

@@ -14,11 +14,4 @@ sqlparse
 tzdata
 urllib3
 django-cors-headers
-Pillow
-opencv-python
-keras
 python-multipart
-tensorflow
-skin-tone-classifier
-azure-storage-blob
-python-dotenv
