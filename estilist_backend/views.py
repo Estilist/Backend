@@ -9,9 +9,12 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from keras.models import load_model # keras
 from PIL import Image
-import gdown, os, cv2, json, datetime, numpy as np
+import os, cv2, json, datetime, numpy as np
 from estilist_backend.functions import Functions
-
+from azure.storage.blob import BlobServiceClient
+from django.conf import settings
+import os
+from tensorflow.keras.models import load_model
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -194,15 +197,22 @@ class FacialRecognition(APIView):
             return Response({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
         # return Response({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK) CHANGE LATER
         
-        shape_model_url = "https://drive.google.com/uc?id=1JnAi2DVwt0_XbVpRcpVN3pQgR_8xGHuK"
+        BLOB_CONNECTION_STRING = os.getenv('BLOB_CONNECTION_STRING')
+        CONTAINER_NAME = 'models'
+        BLOB_NAME = '/shape.h5'
+        LOCAL_MODEL_PATH = 'estilist_backend/Models/shape.h5'
 
-        shape_model_path = "estilist_backend/Models/shape.h5"
+        if not os.path.exists(LOCAL_MODEL_PATH):  # Evita descargas repetidas
+            blob_service_client = BlobServiceClient.from_connection_string(BLOB_CONNECTION_STRING)
+            blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=BLOB_NAME)
+            
+            # Descargar el blob y guardarlo en el sistema de archivos
+            with open(LOCAL_MODEL_PATH, "wb") as model_file:
+                model_file.write(blob_client.download_blob().readall())
+            print("Modelo descargado y almacenado en:", LOCAL_MODEL_PATH)
 
-        if not os.path.exists(shape_model_path):
-            gdown.download(shape_model_url, shape_model_path, quiet=False)
-
-        shape_model = load_model(shape_model_path)
-
+        shape_model = load_model(LOCAL_MODEL_PATH)
+        
         image_data = image_file.read()
         
         image_array = np.fromstring(image_data, np.uint8)
