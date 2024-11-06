@@ -23,3 +23,5 @@ skin-tone-classifier
 gdown
 requests
 dlib
+azure-storage-blob
+python-dotenv==1.0.1
