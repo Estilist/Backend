@@ -15,4 +15,4 @@ tzdata
 urllib3
 django-cors-headers
 python-multipart
-dotenv
+python-dotenv
