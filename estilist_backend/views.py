@@ -199,9 +199,9 @@ class FacialRecognition(APIView):
         
         BLOB_CONNECTION_STRING = os.getenv('BLOB_CONNECTION_STRING')
         CONTAINER_NAME = 'models'
-        BLOB_NAME = '/shape.h5'
+        BLOB_NAME = 'shape.h5'
         LOCAL_MODEL_PATH = 'estilist_backend/Models/shape.h5'
-
+        
         if not os.path.exists(LOCAL_MODEL_PATH):  # Evita descargas repetidas
             blob_service_client = BlobServiceClient.from_connection_string(BLOB_CONNECTION_STRING)
             blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=BLOB_NAME)

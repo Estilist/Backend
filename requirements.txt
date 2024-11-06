@@ -22,3 +22,5 @@ skin-tone-classifier
 gdown
 requests
 dlib
+azure-storage-blob
+dotenv
