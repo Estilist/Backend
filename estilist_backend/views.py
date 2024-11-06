@@ -188,14 +188,14 @@ class FacialRecognition(APIView):
     def post(self, request):
         image_file = request.data.get('image')
         if image_file is None:
-            return Response({'error': 'No se ha enviado ninguna imagen'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'No se ha enviado ninguna imagen'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             img = Image.open(image_file)
             img.verify()  # Esto lanza una excepción si el archivo no es una imagen válida
             image_file.seek(0)
         except (IOError, SyntaxError) as e:
-            return Response({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
-        # return Response({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK) CHANGE LATER
+            return JsonResponse({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK)
         
 #         BLOB_CONNECTION_STRING = os.getenv('BLOB_CONNECTION_STRING')
 #         CONTAINER_NAME = 'models'
