@@ -77,10 +77,11 @@ class Preferencias(models.Model):
     ajusteropa = models.CharField(db_column='AjusteRopa', max_length=50, blank=True, null=True)  # Field name made lowercase.
     tintecabello = models.CharField(db_column='TinteCabello', max_length=50, blank=True, null=True)  # Field name made lowercase.
     cortecabello = models.CharField(db_column='CorteCabello', max_length=50, blank=True, null=True)  # Field name made lowercase.
-    ropa = models.CharField(db_column='Ropa', max_length=50, blank=True, null=True)  # Field name made lowercase.
-    pantalon = models.CharField(db_column='Pantalon', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    accesorios = models.CharField(db_column='Accesorios', max_length=50, blank=True, null=True)  # Field name made lowercase.
     joyeria = models.CharField(db_column='Joyeria', max_length=50, blank=True, null=True)  # Field name made lowercase.
-    calzado = models.CharField(db_column='Calzado', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    ropa = models.CharField(db_column='Ropa', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    maquillaje = models.CharField(db_column='Maquillaje', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    recomendaciones = models.CharField(db_column='Recomendaciones', max_length=50, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = True
