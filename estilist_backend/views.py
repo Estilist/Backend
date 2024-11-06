@@ -145,7 +145,7 @@ class UserMeasurements(View):
         
         try:
             user_medidas, created = Medidas.objects.get_or_create(
-                idusuario=user,
+                idusuario=user.idusuario,
                 defaults={
                     'altura': data.get('altura'),
                     'peso': data.get('peso'),
@@ -176,7 +176,7 @@ class UserMeasurements(View):
                 return JsonResponse({'error': 'Error al actualizar el tipo de cuerpo'}, status=500)
             return JsonResponse({'message': 'Medidas actualizadas con exito'}, status=200)
         
-        user.tipocuerpo = self.BodyType(user.genero, user_medidas.hombro, user_medidas.cadera, user_medidas.cintura)
+        user.tipocuerpo = self.BodyType(user.genero, user_medidas.hombros, user_medidas.cadera, user_medidas.cintura)
         try:
             user.save()
         except:
@@ -196,6 +196,7 @@ class FacialRecognition(APIView):
         except (IOError, SyntaxError) as e:
             return JsonResponse({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
         return JsonResponse({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK)
+
         
 #         BLOB_CONNECTION_STRING = os.getenv('BLOB_CONNECTION_STRING')
 #         CONTAINER_NAME = 'models'
@@ -229,4 +230,43 @@ class FacialRecognition(APIView):
 #             }
 #         )
 
-
+# class UserPreferences(APIView):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body)
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+#         id = data.get('idusuario')
+#         try:
+#             user = Usuarios.objects.get(idusuario= id)
+#         except:
+#             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+#         try:
+#             user_preferences, created = Preferencias.objects.get_or_create(
+#                 idusuario=user,
+#                 defaults={
+#                     'ajusteropa': data.get('ajusteropa'),
+#                     'ropa': data.get('ropa'),
+#                     'pantalon': data.get('pantalon'),
+#                     'joyeria': data.get('joyeria'),
+#                     'calzado': data.get('calzado')
+#                 }
+#             )
+#         except:
+#             return JsonResponse({'error': 'Error al crear las preferencias'}, status=500)
+        
+#         if not created:
+#             user_preferences.ajusteropa = data.get('ajusteropa')
+#             user_preferences.ropa = data.get('ropa')
+#             user_preferences.pantalon = data.get('pantalon')
+#             user_preferences.joyeria = data.get('joyeria')
+#             user_preferences.calzado = data.get('calzado')
+#             try:
+#                 user_preferences.save()
+#             except:
+#                 return JsonResponse({'error': 'Error al actualizar las preferencias'}, status=500)
+#             return JsonResponse({'message': 'Preferencias actualizadas con exito'}, status=200)
+        
+#         return JsonResponse({'message': 'Preferencias creadas con exito'}, status=201)

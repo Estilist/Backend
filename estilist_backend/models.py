@@ -75,13 +75,15 @@ class Preferencias(models.Model):
     idpreferencia = models.AutoField(db_column='IdPreferencia', primary_key=True)  # Field name made lowercase.
     idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
     ajusteropa = models.CharField(db_column='AjusteRopa', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    tintecabello = models.CharField(db_column='TinteCabello', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    cortecabello = models.CharField(db_column='CorteCabello', max_length=50, blank=True, null=True)  # Field name made lowercase.
     ropa = models.CharField(db_column='Ropa', max_length=50, blank=True, null=True)  # Field name made lowercase.
     pantalon = models.CharField(db_column='Pantalon', max_length=50, blank=True, null=True)  # Field name made lowercase.
     joyeria = models.CharField(db_column='Joyeria', max_length=50, blank=True, null=True)  # Field name made lowercase.
     calzado = models.CharField(db_column='Calzado', max_length=50, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Preferencias'
 
 class Recomendaciones(models.Model):
