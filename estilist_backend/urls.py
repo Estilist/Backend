@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from estilist_backend.views import CreateUser, UsuariosViewSet, CheckUser, MeauserementsViewSet, UserMeasurements, FacialRecognition
+from estilist_backend.views import CreateUser, UsuariosViewSet, CheckUser, MeauserementsViewSet, UserMeasurements #, FacialRecognition
 
 router = routers.DefaultRouter()    
 router.register(r'users', UsuariosViewSet)
@@ -12,5 +12,5 @@ urlpatterns = [
     path('create-user/', CreateUser.as_view(), name='create_user'),
     path('check-user/', CheckUser.as_view(), name='check_user'),
     path('user-measurements/', UserMeasurements.as_view(), name='user_measurements'),
-    path('facial-recognition/', FacialRecognition.as_view(), name='facial_recognition'),    
+    # path('facial-recognition/', FacialRecognition.as_view(), name='facial_recognition'),    
 ]

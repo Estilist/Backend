@@ -61,14 +61,13 @@ class Medidas(models.Model):
     idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
     altura = models.DecimalField(db_column='Altura', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
     peso = models.DecimalField(db_column='Peso', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
-    pecho = models.DecimalField(db_column='Pecho', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
+    hombros = models.DecimalField(db_column='Hombros', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
     cintura = models.DecimalField(db_column='Cintura', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
     cadera = models.DecimalField(db_column='Cadera', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
-    entrepierna = models.DecimalField(db_column='Entrepierna', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
     fechaactualizacion = models.DateTimeField(db_column='FechaActualizacion', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Medidas'
 
 
