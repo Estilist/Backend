@@ -21,3 +21,4 @@ tensorflow
 skin-tone-classifier
 gdown
 requests
+dlib
