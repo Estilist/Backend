@@ -23,4 +23,4 @@ gdown
 requests
 dlib
 azure-storage-blob
-dotenv
+python-dotenv==1.0.1
