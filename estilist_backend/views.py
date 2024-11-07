@@ -155,7 +155,7 @@ class UserMeasurements(View):
                     'hombros': data.get('hombros'),
                     'cintura': data.get('cintura'),
                     'cadera': data.get('cadera'),
-                    'fechaactualizacion': datetime.datetime.now()
+                    'fechaactualizacion': datetime.now()
                 }
             )
         except:
@@ -167,7 +167,7 @@ class UserMeasurements(View):
             user_medidas.hombros = data.get('hombros')
             user_medidas.cintura = data.get('cintura')
             user_medidas.cadera = data.get('cadera')
-            user_medidas.fechaactualizacion = datetime.datetime.now()
+            user_medidas.fechaactualizacion = datetime.now()
             try:
                 user_medidas.save()
             except:
