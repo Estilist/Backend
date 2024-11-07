@@ -3,7 +3,7 @@ from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from PIL import Image
-from .models import Usuarios, Medidas, Preferencias
+from .models import Usuarios, Medidas, Preferencias, Colorimetria
 from .serializers import UsuariosSerializer, MeasuerementsSerializer
 from django.views import View
 from django.http import JsonResponse
@@ -186,34 +186,96 @@ class UserMeasurements(View):
             return JsonResponse({'error': 'Error al actualizar el tipo de cuerpo'}, status=500)
         return JsonResponse({'message': 'Medidas creadas con exito'}, status=201)
 
+def hex_to_rgb(hex_code):
+        hex_code = hex_code.lstrip('#')
+        return tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
+
+def color_distance(c1, c2):
+    return sum((a - b) ** 2 for a, b in zip(c1, c2)) ** 0.5
+
 class FacialRecognition(APIView):
     parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
-    def post(self, request):
-        image_file = request.data.get('file')
-        if image_file is None:
-            return JsonResponse({'error': 'No se ha enviado ninguna imagen'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    COLD_TONES = [
+        hex_to_rgb('#FFC0CB'), hex_to_rgb('#E75480'),
+        hex_to_rgb('#D2042D'), hex_to_rgb('#990033'),
+        hex_to_rgb('#B0E0E6'), hex_to_rgb('#4169E1'),
+        hex_to_rgb('#000080')
+    ]
+
+    WARM_TONES = [
+        hex_to_rgb('#FFFACD'), hex_to_rgb('#FFD700'),
+        hex_to_rgb('#DAA520'), hex_to_rgb('#FFDAB9'),
+        hex_to_rgb('#FFB07C'), hex_to_rgb('#B87333'),
+        hex_to_rgb('#CD7F32')
+    ]
+
+    NEUTRAL_TONES = [
+        hex_to_rgb('#F7E7CE'), hex_to_rgb('#D3BFAE'),
+        hex_to_rgb('#708090'), hex_to_rgb('#8B8589'),
+        hex_to_rgb('#B5A642'), hex_to_rgb('#E6E6FA'),
+        hex_to_rgb('#D8A9A9')
+    ]
+    
+    THRESHOLD = 100  # Adjust the threshold as needed
+    
+
+    def match_tone(self, subtono_rgb):
+        min_distance = float('inf')
+        matched_tone = 'Neutro'
+
+        for tone in ['Frío', 'Cálido', 'Neutro']:
+            if tone == 'Frío':
+                tone_list = self.COLD_TONES
+            elif tone == 'Cálido':
+                tone_list = self.WARM_TONES
+            else:
+                tone_list = self.NEUTRAL_TONES
+
+            for base_color in tone_list:
+                distance = color_distance(subtono_rgb, base_color)
+                if distance < min_distance and distance <= self.THRESHOLD:
+                    min_distance = distance
+                    matched_tone = tone
+
+        return matched_tone
+
+    def determine_skin_tone(self, subtono1, subtono2, subtono3):
         try:
-            img = Image.open(image_file)
-            img.verify()
-        except (IOError, SyntaxError) as e:
-            return JsonResponse({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
+            subtones = [
+                hex_to_rgb(subtono1),
+                hex_to_rgb(subtono2),
+                hex_to_rgb(subtono3)
+            ]
+        except ValueError:
+            return 'Neutro'
+
+        tone_counts = {'Frío': 0, 'Cálido': 0, 'Neutro': 0}
+
+        for subtone in subtones:
+            tone = self.match_tone(subtone)
+            tone_counts[tone] += 1
+
+        if tone_counts['Frío'] > tone_counts['Cálido']:
+            return 'Frío'
+        elif tone_counts['Cálido'] > tone_counts['Frío']:
+            return 'Cálido'
+        else:
+            return 'Neutro'
+    
+    def post(self, request):
         
-        save_dir = os.path.join(settings.BASE_DIR, 'estilist_backend', 'Images')
-        os.makedirs(save_dir, exist_ok=True)
-        file_path = os.path.join(save_dir, image_file.name)
+        img_url = request.data.get('url')
         
-        with open(file_path, 'wb+') as destination: 
-            for chunk in image_file.chunks():
-                destination.write(chunk)
-                
         url = 'https://identiface.ambitioussea-007d0918.westus3.azurecontainerapps.io/predict/'
-        with open(file_path, 'rb') as img_file:
-                files = {'file': img_file}
-                response = requests.post(url, files=files)
+        
+        response = requests.post(url, data={'url': img_url})
         
         attributes = response.json()
         
         id = request.data.get('idusuario')
+        
+        tonos_piel = attributes.get('tono_piel', [])
         
         try:
             user = Usuarios.objects.get(idusuario= id)
@@ -226,9 +288,6 @@ class FacialRecognition(APIView):
         except:
             return JsonResponse({'error': 'Error al actualizar el tipo de rostro'}, status=500)
         
-        
-        
-        return JsonResponse(response.json(), status=200)
         
 class UserPreferences(View):
     def post(self, request):
