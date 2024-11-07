@@ -9,9 +9,11 @@ from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 import json, datetime
-import os, requests
-from django.conf import settings
-
+from estilist_project import settings
+from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+import os, requests, uuid
+from datetime import datetime, timedelta
+import logging
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -272,3 +274,57 @@ class UserPreferences(View):
             return JsonResponse({'message': 'Preferencias actualizadas con exito'}, status=200)
         
         return JsonResponse({'message': 'Preferencias creadas con exito'}, status=201)
+
+class GetUploadUrlView(APIView):
+    def get(self, request, format=None):
+        filename = request.query_params.get('filename')
+        filetype = request.query_params.get('filetype')
+
+        if not filename or not filetype:
+            return JsonResponse({'error': 'Faltan parametros: filename y filetype son requeridos.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Verificar configuraciones
+        logging.debug(f"AZURE_STORAGE_ACCOUNT_NAME: {settings.AZURE_STORAGE_ACCOUNT_NAME}")
+        logging.debug(f"AZURE_STORAGE_ACCOUNT_ENDPOINT: {settings.AZURE_STORAGE_ACCOUNT_ENDPOINT}")
+
+        if not settings.AZURE_STORAGE_ACCOUNT_NAME or not settings.AZURE_STORAGE_ACCOUNT_KEY:
+            return JsonResponse({'error': 'Configuraciones de Azure faltantes.'},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Generar un nombre único para el blob
+        blob_name = f"{uuid.uuid4()}_{filename}"
+
+        # Crear el cliente de Blob Storage
+        try:
+            blob_service_client = BlobServiceClient(
+                account_url=settings.AZURE_STORAGE_ACCOUNT_ENDPOINT,
+                credential=settings.AZURE_STORAGE_ACCOUNT_KEY
+            )
+        except ValueError as e:
+            logging.error(f"Error al crear BlobServiceClient: {e}")
+            return JsonResponse({'error': 'Configuración de Azure inválida.'},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        container_client = blob_service_client.get_container_client(settings.AZURE_STORAGE_CONTAINER_NAME)
+
+        if not container_client.exists():
+            return JsonResponse({'error': 'El contenedor especificado no existe.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        sas_token = generate_blob_sas(
+            account_name=settings.AZURE_STORAGE_ACCOUNT_NAME,
+            container_name=settings.AZURE_STORAGE_CONTAINER_NAME,
+            blob_name=blob_name,
+            account_key=settings.AZURE_STORAGE_ACCOUNT_KEY,
+            permission=BlobSasPermissions(write=True),
+            expiry=datetime.utcnow() + timedelta(hours=1)  # La SAS expira en 1 hora
+        )
+
+        upload_url = f"{settings.AZURE_STORAGE_ACCOUNT_ENDPOINT}/{settings.AZURE_STORAGE_CONTAINER_NAME}/{blob_name}?{sas_token}"
+        file_url = f"{settings.AZURE_STORAGE_ACCOUNT_ENDPOINT}/{settings.AZURE_STORAGE_CONTAINER_NAME}/{blob_name}"
+
+        return JsonResponse({
+            'uploadUrl': upload_url,
+            'fileUrl': file_url
+        }, status=status.HTTP_200_OK)

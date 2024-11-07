@@ -16,6 +16,10 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+AZURE_STORAGE_ACCOUNT_KEY = os.getenv('AZURE_STORAGE_ACCOUNT_KEY')
+AZURE_STORAGE_CONTAINER_NAME = os.getenv('AZURE_STORAGE_CONTAINER_NAME')
+AZURE_STORAGE_ACCOUNT_NAME = os.getenv('AZURE_STORAGE_ACCOUNT_NAME')
+AZURE_STORAGE_ACCOUNT_ENDPOINT = f'https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -84,12 +88,12 @@ WSGI_APPLICATION = 'estilist_project.wsgi.application'
 
 DATABASES = {
      'default': {
-        'ENGINE': os.getenv('DATABASE_ENGINE'),
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'), 
-        'PORT': os.getenv('DATABASE_PORT'),       
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'EstilistDB',
+        'USER':'estilist',
+        'PASSWORD':'EspyCuatas123!',
+        'HOST': 'estilist-db.postgres.database.azure.com', 
+        'PORT': '5432',       
     }
 }
 
