@@ -326,6 +326,7 @@ class FacialRecognition(APIView):
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700')  # Oro amarillo
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2')  # Oro blanco
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79')  # Oro rosa
+            return JsonResponse({'msg':'Colorimetria actualizada con exito'})
         else:
             if colorimetria.tipo == 'Frio':
                 Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B2A59F')  # Rubio cenizo
@@ -350,8 +351,8 @@ class FacialRecognition(APIView):
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700')  # Oro amarillo
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2')  # Oro blanco
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79')  # Oro rosa
+            return JsonResponse({'msg':'Colorimetria creada con exito'})
         
-        return JsonResponse({'ok':'realmente no se'})
             
         
 class UserPreferences(View):
