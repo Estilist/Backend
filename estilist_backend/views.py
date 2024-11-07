@@ -148,7 +148,7 @@ class UserMeasurements(View):
         
         try:
             user_medidas, created = Medidas.objects.get_or_create(
-                idusuario=user.idusuario,
+                idusuario=user,
                 defaults={
                     'altura': data.get('altura'),
                     'peso': data.get('peso'),
@@ -225,6 +225,8 @@ class FacialRecognition(APIView):
             user.save()
         except:
             return JsonResponse({'error': 'Error al actualizar el tipo de rostro'}, status=500)
+        
+        
         
         return JsonResponse(response.json(), status=200)
         

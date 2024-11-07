@@ -25,6 +25,7 @@ class Usuarios(models.Model):
 class Colorimetria(models.Model):
     idcolorimetria = models.AutoField(db_column='IdColorimetria', primary_key=True)  # Field name made lowercase.
     idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
+    tonopiel = models.CharField(db_column='TonoPiel', max_length=50, blank=True, null=True)  # Field name made lowercase.
     tipo = models.CharField(db_column='Tipo', max_length=50, blank=True, null=True, db_comment='Ropa, Cabello, Accesorios')  # Field name made lowercase.
     color = models.CharField(db_column='Color', max_length=50, blank=True, null=True)  # Field name made lowercase.
 
