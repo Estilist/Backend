@@ -200,7 +200,7 @@ class FacialRecognition(APIView):
         os.makedirs(save_dir, exist_ok=True)
         file_path = os.path.join(save_dir, image_file.name)
         
-        with open(file_path, 'wb+') as destination:
+        with open(file_path, 'wb+') as destination: 
             for chunk in image_file.chunks():
                 destination.write(chunk)
                 
