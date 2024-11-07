@@ -39,7 +39,7 @@ class CreateUser(View):
         password = data.get('contrasena')
         password_hashed = make_password(
         password, salt=None, hasher='pbkdf2_sha256')
-        hora_actual = datetime.datetime.now()
+        hora_actual = datetime.now()
         try:
             usuario, created = Usuarios.objects.get_or_create(
                 correo=data.get('correo'),
@@ -81,7 +81,7 @@ class CheckUser(View):
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
         if  check_password(password, user.contrasena):
-            hora_actual = datetime.datetime.now()
+            hora_actual = datetime.now()
             user.last_login = hora_actual
             try:
                 user.save()
