@@ -9,7 +9,9 @@ from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 import json, datetime
-import os
+import os, requests
+from django.conf import settings
+
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -185,17 +187,45 @@ class UserMeasurements(View):
 class FacialRecognition(APIView):
     parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
     def post(self, request):
-        image_file = request.data.get('image')
+        image_file = request.data.get('file')
         if image_file is None:
             return JsonResponse({'error': 'No se ha enviado ninguna imagen'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             img = Image.open(image_file)
-            img.verify()  # Esto lanza una excepción si el archivo no es una imagen válida
-            image_file.seek(0)
+            img.verify()
         except (IOError, SyntaxError) as e:
             return JsonResponse({'error': 'El archivo no es una imagen válida'}, status=status.HTTP_400_BAD_REQUEST)
-        return JsonResponse({'message': 'Imagen recibida con exito'}, status=status.HTTP_200_OK)
-
+        
+        save_dir = os.path.join(settings.BASE_DIR, 'estilist_backend', 'Images')
+        os.makedirs(save_dir, exist_ok=True)
+        file_path = os.path.join(save_dir, image_file.name)
+        
+        with open(file_path, 'wb+') as destination:
+            for chunk in image_file.chunks():
+                destination.write(chunk)
+                
+        url = 'https://identiface.ambitioussea-007d0918.westus3.azurecontainerapps.io/predict/'
+        with open(file_path, 'rb') as img_file:
+                files = {'file': img_file}
+                response = requests.post(url, files=files)
+        
+        attributes = response.json()
+        
+        id = request.data.get('idusuario')
+        
+        try:
+            user = Usuarios.objects.get(idusuario= id)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        user.tiporostro = attributes.get('forma')
+        try:
+            user.save()
+        except:
+            return JsonResponse({'error': 'Error al actualizar el tipo de rostro'}, status=500)
+        
+        return JsonResponse(response.json(), status=200)
+        
 class UserPreferences(View):
     def post(self, request):
         try:
