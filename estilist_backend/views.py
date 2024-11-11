@@ -205,25 +205,25 @@ def color_distance(c1, c2):
 class FacialRecognition(APIView):
     parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
     
-    COLD_TONES = [
-        hex_to_rgb('#FFC0CB'), hex_to_rgb('#E75480'),
-        hex_to_rgb('#D2042D'), hex_to_rgb('#990033'),
-        hex_to_rgb('#B0E0E6'), hex_to_rgb('#4169E1'),
-        hex_to_rgb('#000080')
+    WARM_TONES = [
+        hex_to_rgb('#FAD7B5'), hex_to_rgb('#E8A87C'),
+        hex_to_rgb('#D19063'), hex_to_rgb('#A66A44'),
+        hex_to_rgb('#8D5524'), hex_to_rgb('#C68642'),
+        hex_to_rgb('#9E5A3C')
     ]
 
-    WARM_TONES = [
-        hex_to_rgb('#FFFACD'), hex_to_rgb('#FFD700'),
-        hex_to_rgb('#DAA520'), hex_to_rgb('#FFDAB9'),
-        hex_to_rgb('#FFB07C'), hex_to_rgb('#B87333'),
-        hex_to_rgb('#CD7F32')
+    COLD_TONES = [
+        hex_to_rgb('#FFD1DC'), hex_to_rgb('#E0B1CB'),
+        hex_to_rgb('#B5838D'), hex_to_rgb('#6A515E'),
+        hex_to_rgb('#4E3629'), hex_to_rgb('#A270A4'),
+        hex_to_rgb('#8D5C84')
     ]
 
     NEUTRAL_TONES = [
-        hex_to_rgb('#F7E7CE'), hex_to_rgb('#D3BFAE'),
-        hex_to_rgb('#708090'), hex_to_rgb('#8B8589'),
-        hex_to_rgb('#B5A642'), hex_to_rgb('#E6E6FA'),
-        hex_to_rgb('#D8A9A9')
+        hex_to_rgb('#F0D5C9'), hex_to_rgb('#D9B6A3'),
+        hex_to_rgb('#C2A185'), hex_to_rgb('#8C7B6B'),
+        hex_to_rgb('#5D4631'), hex_to_rgb('#B2ADA3'),
+        hex_to_rgb('#8B8680')
     ]
     
     THRESHOLD = 100  # Adjust the threshold as needed
@@ -298,12 +298,16 @@ class FacialRecognition(APIView):
         
         tono = self.determine_skin_tone(tonos_piel[0], tonos_piel[1], tonos_piel[2])
         
+        tonos =  ",".join(tonos_piel)
+        
+        
         try:
             colorimetria, created = Colorimetria.objects.get_or_create(
                 idusuario=user,
                 tipo='Tono',
                 defaults={
-                    'color': tono
+                    'color': tonos,
+                    'tono': tono
                 }
             )
         except:
@@ -311,59 +315,99 @@ class FacialRecognition(APIView):
         
         if not created:
             Colorimetria.objects.filter(idusuario = id).delete()
-            tono = Colorimetria.objects.create(idusuario=user, tipo='Tono', color=tono)
+            tono = Colorimetria.objects.create(idusuario=user, tipo='Tono', color=tonos, tono=tono)
             if tono.tipo == 'Frio':
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B2A59F')  # Rubio cenizo
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#4B4845')  # Castaño oscuro cenizo
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#5B2333')  # Vino
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#1A1C3B')  # Negro azulado
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2')  # Oro blanco
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#C0C0C0')  # Plata
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E6E6FA')  # Platino
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFC0CB', tono='Frio')  # Rosado
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#E75480', tono='Frio')  # Rojos
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#D2042D', tono='Frio')  # Rojos
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#990033', tono='Frio')  # Rojos
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#B0E0E6', tono='Frio')  # Azules
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#4169E1', tono='Frio')  # Azules
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#000080', tono='Frio')  # Azules
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B2A59F', tono='Frio')  # Rubio cenizo
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#4B4845', tono='Frio')  # Castaño oscuro cenizo
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#5B2333', tono='Frio')  # Vino
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#1A1C3B', tono='Frio')  # Negro azulado
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2', tono='Frio')  # Oro blanco
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#C0C0C0', tono='Frio')  # Plata
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E6E6FA', tono='Frio')  # Platino
             elif tono.tipo == 'Calido':
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#D7B27C')  # Rubio dorado
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#8B5E3C')  # Castaño claro
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B35A1F')  # Cobre
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#5C4033')  # Castaño oscuro
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700')  # Oro amarillo
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79')  # Oro rosa
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFFACD', tono='Calido')  # Amarillo
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFD700', tono='Calido')  # Dorado
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#DAA520', tono='Calido')  # Dorado
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFDAB9', tono='Calido')  # Melocoton
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFB07C', tono='Calido')  # Melocoton
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#B87333', tono='Calido')  # Melocoton
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#CD7F32', tono='Calido')  # Melocoton
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#D7B27C', tono='Calido')  # Rubio dorado
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#8B5E3C', tono='Calido')  # Castaño claro
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B35A1F', tono='Calido')  # Cobre
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#5C4033', tono='Calido')  # Castaño oscuro
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700', tono='Calido')  # Oro amarillo
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79', tono='Calido')  # Oro rosa
             else:
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#C8B79E')  # Rubio neutro
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#7B3F00')  # Castaño chocolate
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#9C5221')  # Marrón cobrizo
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#2D2D2D')  # Negro suave
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700')  # Oro amarillo
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2')  # Oro blanco
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79')  # Oro rosa
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#F7E7CE', tono='Neutro')  # Beige claro
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#D3BFAE', tono='Neutro')  # Beige
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#708090', tono='Neutro')  # Gris azulado
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#8B8589', tono='Neutro')  # Gris pardo
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#B5A642', tono='Neutro')  # Amarillo oliva
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#E6E6FA', tono='Neutro')  # Lavanda
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#D8A9A9', tono='Neutro')  # Rosa palido
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#C8B79E', tono='Neutro')  # Rubio neutro
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#7B3F00', tono='Neutro')  # Castaño chocolate
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#9C5221', tono='Neutro')  # Marrón cobrizo
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#2D2D2D', tono='Neutro')  # Negro suave
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700', tono='Neutro')  # Oro amarillo
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2', tono='Neutro')  # Oro blanco
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79', tono='Neutro')  # Oro rosa
             return JsonResponse({'msg':'Colorimetria actualizada con exito'})
         else:
             if colorimetria.tipo == 'Frio':
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B2A59F')  # Rubio cenizo
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#4B4845')  # Castaño oscuro cenizo
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#5B2333')  # Vino
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#1A1C3B')  # Negro azulado
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2')  # Oro blanco
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#C0C0C0')  # Plata
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E6E6FA')  # Platino
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFC0CB', tono='Frio')  # Rosado
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#E75480', tono='Frio')  # Rojos
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#D2042D', tono='Frio')  # Rojos
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#990033', tono='Frio')  # Rojos
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#B0E0E6', tono='Frio')  # Azules
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#4169E1', tono='Frio')  # Azules
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#000080', tono='Frio')  # Azules
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B2A59F', tono='Frio')  # Rubio cenizo
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#4B4845', tono='Frio')  # Castaño oscuro cenizo
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#5B2333', tono='Frio')  # Vino
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#1A1C3B', tono='Frio')  # Negro azulado
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2', tono='Frio')  # Oro blanco
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#C0C0C0', tono='Frio')  # Plata
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E6E6FA', tono='Frio')  # Platino
             elif colorimetria.tipo == 'Calido':
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#D7B27C')  # Rubio dorado
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#8B5E3C')  # Castaño claro
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B35A1F')  # Cobre
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#5C4033')  # Castaño oscuro
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700')  # Oro amarillo
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79')  # Oro rosa
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFFACD', tono='Calido')  # Amarillo
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFD700', tono='Calido')  # Dorado
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#DAA520', tono='Calido')  # Dorado
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFDAB9', tono='Calido')  # Melocoton
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFB07C', tono='Calido')  # Melocoton
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#B87333', tono='Calido')  # Melocoton
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#CD7F32', tono='Calido')  # Melocoton
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#D7B27C', tono='Calido')  # Rubio dorado
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#8B5E3C', tono='Calido')  # Castaño claro
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#B35A1F', tono='Calido')  # Cobre
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#5C4033', tono='Calido')  # Castaño oscuro
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700', tono='Calido')  # Oro amarillo
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79', tono='Calido')  # Oro rosa
             else:
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#C8B79E')  # Rubio neutro
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#7B3F00')  # Castaño chocolate
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#9C5221')  # Marrón cobrizo
-                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#2D2D2D')  # Negro suave
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700')  # Oro amarillo
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2')  # Oro blanco
-                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79')  # Oro rosa
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#F7E7CE', tono='Neutro')  # Beige claro
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#D3BFAE', tono='Neutro')  # Beige
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#708090', tono='Neutro')  # Gris azulado
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#8B8589', tono='Neutro')  # Gris pardo
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#B5A642', tono='Neutro')  # Amarillo oliva
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#E6E6FA', tono='Neutro')  # Lavanda
+                Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#D8A9A9', tono='Neutro')  # Rosa palido
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#C8B79E', tono='Neutro')  # Rubio neutro
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#7B3F00', tono='Neutro')  # Castaño chocolate
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#9C5221', tono='Neutro')  # Marrón cobrizo
+                Colorimetria.objects.create(idusuario=user, tipo='Cabello', color='#2D2D2D', tono='Neutro')  # Negro suave
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#FFD700', tono='Neutro')  # Oro amarillo
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2', tono='Neutro')  # Oro blanco
+                Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79', tono='Neutro')  # Oro rosa
             return JsonResponse({'msg':'Colorimetria creada con exito'})
-        
-            
-        
+                
 class UserPreferences(View):
     def post(self, request):
         try:

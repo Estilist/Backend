@@ -27,9 +27,10 @@ class Colorimetria(models.Model):
     idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
     tipo = models.CharField(db_column='Tipo', max_length=50, blank=True, null=True, db_comment='Ropa, Cabello, Joyeria, Tono')  # Field name made lowercase.
     color = models.CharField(db_column='Color', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    tono = models.CharField(db_column='Tono', max_length=50, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'Colorimetria'
 
 
