@@ -27,14 +27,17 @@ class MeauserementsViewSet(viewsets.ModelViewSet):
     lookup_field = 'idusuario'
     def create(self, request, *args, **kwargs):
         raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")
+    
 
 class ColorimetriaViewSet(viewsets.ModelViewSet):
-    queryset = Colorimetria.objects.all()
     serializer_class = ColorimetriaSerializer
-    lookup_field = 'idusuario'
-    def create(self, request, *args, **kwargs):
-        raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")
 
+    def get_queryset(self):
+        idusuario = self.request.query_params.get('idusuario')
+        if idusuario:
+            return Colorimetria.objects.filter(idusuario=idusuario)
+        return Colorimetria.objects.all()
+    
 class CreateUser(View):
     def post(self, request):
         try:

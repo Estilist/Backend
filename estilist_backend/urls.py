@@ -5,7 +5,7 @@ from estilist_backend.views import CreateUser, UsuariosViewSet, CheckUser, Meaus
 router = routers.DefaultRouter()    
 router.register(r'users', UsuariosViewSet)
 router.register(r'measurements', MeauserementsViewSet)
-router.register(r'colorimetry', ColorimetriaViewSet)
+router.register(r'colorimetry', ColorimetriaViewSet, basename='colorimetry')
 
 
 urlpatterns = [
