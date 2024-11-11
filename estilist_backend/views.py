@@ -304,7 +304,7 @@ class FacialRecognition(APIView):
         try:
             colorimetria, created = Colorimetria.objects.get_or_create(
                 idusuario=user,
-                tipo='Tono',
+                tipo='Subtonos',
                 defaults={
                     'color': tonos,
                     'tono': tono
@@ -315,8 +315,8 @@ class FacialRecognition(APIView):
         
         if not created:
             Colorimetria.objects.filter(idusuario = id).delete()
-            tono = Colorimetria.objects.create(idusuario=user, tipo='Tono', color=tonos, tono=tono)
-            if tono.tipo == 'Frio':
+            tono = Colorimetria.objects.create(idusuario=user, tipo='Subtonos', color=tonos, tono=tono)
+            if tono.tono == 'Frio':
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFC0CB', tono='Frio')  # Rosado
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#E75480', tono='Frio')  # Rojos
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#D2042D', tono='Frio')  # Rojos
@@ -331,7 +331,7 @@ class FacialRecognition(APIView):
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2', tono='Frio')  # Oro blanco
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#C0C0C0', tono='Frio')  # Plata
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E6E6FA', tono='Frio')  # Platino
-            elif tono.tipo == 'Calido':
+            elif tono.tono == 'Calido':
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFFACD', tono='Calido')  # Amarillo
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFD700', tono='Calido')  # Dorado
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#DAA520', tono='Calido')  # Dorado
@@ -362,7 +362,7 @@ class FacialRecognition(APIView):
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79', tono='Neutro')  # Oro rosa
             return JsonResponse({'msg':'Colorimetria actualizada con exito'})
         else:
-            if colorimetria.tipo == 'Frio':
+            if colorimetria.tono == 'Frio':
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFC0CB', tono='Frio')  # Rosado
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#E75480', tono='Frio')  # Rojos
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#D2042D', tono='Frio')  # Rojos
@@ -377,7 +377,7 @@ class FacialRecognition(APIView):
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2', tono='Frio')  # Oro blanco
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#C0C0C0', tono='Frio')  # Plata
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E6E6FA', tono='Frio')  # Platino
-            elif colorimetria.tipo == 'Calido':
+            elif colorimetria.tono == 'Calido':
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFFACD', tono='Calido')  # Amarillo
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFD700', tono='Calido')  # Dorado
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#DAA520', tono='Calido')  # Dorado
