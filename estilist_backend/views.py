@@ -26,8 +26,7 @@ class MeauserementsViewSet(viewsets.ModelViewSet):
     serializer_class = MeasuerementsSerializer
     lookup_field = 'idusuario'
     def create(self, request, *args, **kwargs):
-        raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")
-    
+        raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")   
 
 class ColorimetriaViewSet(viewsets.ModelViewSet):
     serializer_class = ColorimetriaSerializer
@@ -89,6 +88,9 @@ class CheckUser(View):
         except:
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
 
+        if user.estado == False:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        
         if  check_password(password, user.contrasena):
             hora_actual = datetime.now()
             user.last_login = hora_actual
@@ -100,6 +102,26 @@ class CheckUser(View):
                                  'login': user.last_login}, status=200)
         else:
             return JsonResponse({'error': 'Contraseña incorrecta'}, status=401)
+
+class DeleteUser(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        id = data.get('idusuario')
+        try:
+            user = Usuarios.objects.get(idusuario= id)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        user.estado = False
+        try:
+            user.save()
+        except:
+            return JsonResponse({'error': 'Error al deshabilitar el usuario'}, status=500)
+        return JsonResponse({'message': 'Usuario deshabilitado con exito'}, status=200)
 
 class UserMeasurements(View):
     def BodyType(self, sexo, pecho, cadera, cintura):
@@ -154,6 +176,9 @@ class UserMeasurements(View):
             user = Usuarios.objects.get(idusuario= id)
         except:
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        if user.estado == False:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
         
         try:
             user_medidas, created = Medidas.objects.get_or_create(
@@ -277,9 +302,6 @@ class FacialRecognition(APIView):
         
         url = 'https://identiface.ambitioussea-007d0918.westus3.azurecontainerapps.io/predict/'
         
-        response = requests.post(url, data={'url': img_url})
-        
-        attributes = response.json()
         
         id = request.data.get('idusuario')
         
@@ -287,6 +309,13 @@ class FacialRecognition(APIView):
             user = Usuarios.objects.get(idusuario= id)
         except:
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        if user.estado == False:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        
+        response = requests.post(url, data={'url': img_url})
+        
+        attributes = response.json()
         
         user.tiporostro = attributes.get('forma')
         try:
@@ -420,6 +449,9 @@ class UserPreferences(View):
             user = Usuarios.objects.get(idusuario= id)
         except:
             return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        if user.estado ==  False:
+            return JsonResponse({"error" : "Usuario deshabilitado"}, status=401)
         
         try:
             user_preferences, created = Preferencias.objects.get_or_create(
