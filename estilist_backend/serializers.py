@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Usuarios, Medidas
+from .models import Usuarios, Medidas, Colorimetria
 from django.contrib.auth.models import User as auth
 
 class UsuariosSerializer(serializers.ModelSerializer):
@@ -15,4 +15,9 @@ class MeasuerementsSerializer(serializers.ModelSerializer):
 class AuthUserSerialize (serializers.ModelSerializer):
     class Meta:
         model = auth
+        fields = '__all__'
+class ColorimetriaSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Colorimetria
         fields = '__all__'

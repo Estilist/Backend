@@ -2,9 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
-from PIL import Image
 from .models import Usuarios, Medidas, Preferencias, Colorimetria
-from .serializers import UsuariosSerializer, MeasuerementsSerializer
+from .serializers import UsuariosSerializer, MeasuerementsSerializer, ColorimetriaSerializer
 from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
@@ -25,6 +24,13 @@ class MeauserementsViewSet(viewsets.ModelViewSet):
     
     queryset = Medidas.objects.all()
     serializer_class = MeasuerementsSerializer
+    lookup_field = 'idusuario'
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")
+
+class ColorimetriaViewSet(viewsets.ModelViewSet):
+    queryset = Colorimetria.objects.all()
+    serializer_class = ColorimetriaSerializer
     lookup_field = 'idusuario'
     def create(self, request, *args, **kwargs):
         raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")
