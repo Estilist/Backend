@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Usuarios, Medidas, Preferencias, Colorimetria
+from .models import Usuarios, Medidas, Preferencias, Colorimetria, Feedback, Rankings, Recomendaciones
 from .serializers import UsuariosSerializer, MeasuerementsSerializer, ColorimetriaSerializer
 from django.views import View
 from django.http import JsonResponse
@@ -68,8 +68,35 @@ class CreateUser(View):
             return JsonResponse({'error': 'Error al crear el usuario'}, status=500)
         
         if not created:
-            return JsonResponse({'error': 'El usuario ya existe',
-                                 'idUsuario': Usuarios.objects.get(correo=data.get('correo')).idusuario}, status=400)
+            if usuario.estado == False:
+                Colorimetria.objects.filter(idusuario = usuario.idusuario).delete()
+                Medidas.objects.filter(idusuario = usuario.idusuario).delete()
+                Rankings.objects.filter(idusuario = usuario.idusuario).delete()
+                Feedback.objects.filter(idusuario = usuario.idusuario).delete()
+                Recomendaciones.objects.filter(idusuario = usuario.idusuario).delete()
+                Preferencias.objects.filter(idusuario = usuario.idusuario).delete()
+                Usuarios.objects.filter(idusuario = usuario.idusuario).delete()
+                try:
+                    usuario = Usuarios.objects.create(
+                        correo= data.get('correo'),
+                        contrasena= password_hashed,
+                        nombre= data.get('nombre'),
+                        apellidopaterno= data.get('apellidopaterno'),
+                        apellidomaterno= data.get('apellidomaterno'),
+                        edad= data.get('edad'),
+                        genero= data.get('genero'),
+                        fecharegistro= hora_actual,
+                        ultimoacceso= hora_actual,
+                        pais= data.get('pais'),
+                        estado= True
+                    )
+                except:
+                    return JsonResponse({'error': 'Error al habilitar el usuario'}, status=500)
+                return JsonResponse({'message': 'Usuario habilitado con éxito',
+                                 'idUsuario': usuario.idusuario}, status=200)
+            else:
+                return JsonResponse({'error': 'El usuario ya existe',
+                                    'idUsuario': Usuarios.objects.get(correo=data.get('correo')).idusuario}, status=400)
         return JsonResponse({'message': 'Usuario creado con éxito',
                                 'idUsuario': usuario.idusuario}, status=201)   
 
@@ -540,3 +567,4 @@ class GetUploadUrlView(APIView):
             'uploadUrl': upload_url,
             'fileUrl': file_url
         }, status=status.HTTP_200_OK)
+        

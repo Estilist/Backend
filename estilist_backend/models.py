@@ -45,18 +45,6 @@ class Feedback(models.Model):
         managed = False
         db_table = 'Feedback'
 
-
-class ImagenesRostros(models.Model):
-    idimagenrostro = models.AutoField(db_column='IdImagenRostro', primary_key=True)  # Field name made lowercase.
-    idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
-    url = models.TextField(db_column='Url', blank=True, null=True)  # Field name made lowercase.
-    fechasubida = models.DateTimeField(db_column='FechaSubida', blank=True, null=True)  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'Imagenes_Rostros'
-
-
 class Medidas(models.Model):
     idmedidas = models.AutoField(db_column='IdMedidas', primary_key=True)  # Field name made lowercase.
     idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
@@ -111,15 +99,4 @@ class Rankings(models.Model):
     class Meta:
         managed = False
         db_table = 'Rankings'
-
-class Sesiones(models.Model):
-    idsesion = models.AutoField(db_column='IdSesion', primary_key=True)  # Field name made lowercase.
-    idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
-    racha = models.SmallIntegerField(db_column='Racha', blank=True, null=True, db_comment='Contador de racha del usuario')  # Field name made lowercase.
-    fechaactualizacion = models.DateTimeField(db_column='FechaActualizacion', blank=True, null=True)  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'Sesiones'
-
 
