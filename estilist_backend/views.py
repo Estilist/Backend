@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Usuarios, Medidas, Preferencias, Colorimetria, Feedback, Rankings, Recomendaciones
+from .models import Usuarios, Medidas, Preferencias, Colorimetria, Feedback, Rankings, Recomendaciones, ImagenesRostros
 from .serializers import UsuariosSerializer, MeasuerementsSerializer, ColorimetriaSerializer
 from django.views import View
 from django.http import JsonResponse
@@ -339,6 +339,12 @@ class FacialRecognition(APIView):
         
         if user.estado == False:
             return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        
+        hora_actual = datetime.now()
+        try:
+            ImagenesRostros.objects.create(idusuario=user, url=img_url, fechasubida=hora_actual)
+        except:
+            return JsonResponse({'error': 'Error al guardar la imagen'}, status=500)
         
         response = requests.post(url, data={'url': img_url})
         

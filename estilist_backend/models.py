@@ -99,4 +99,14 @@ class Rankings(models.Model):
     class Meta:
         managed = False
         db_table = 'Rankings'
+        
+class ImagenesRostros(models.Model):
+    idimagenrostro = models.AutoField(db_column='IdImagenRostro', primary_key=True)  # Field name made lowercase.
+    idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
+    url = models.TextField(db_column='Url', blank=True, null=True)  # Field name made lowercase.
+    fechasubida = models.DateTimeField(db_column='FechaSubida', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Imagenes_Rostros'
 
