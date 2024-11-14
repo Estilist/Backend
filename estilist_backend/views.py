@@ -300,12 +300,10 @@ class FacialRecognition(APIView):
 
         return matched_tone
 
-    def determine_skin_tone(self, subtono1, subtono2, subtono3):
+    def determine_skin_tone(self, subtono1):
         try:
             subtones = [
                 hex_to_rgb(subtono1),
-                hex_to_rgb(subtono2),
-                hex_to_rgb(subtono3)
             ]
         except ValueError:
             return 'Neutro'
@@ -316,9 +314,9 @@ class FacialRecognition(APIView):
             tone = self.match_tone(subtone)
             tone_counts[tone] += 1
 
-        if tone_counts['Frio'] > tone_counts['Calido']:
+        if tone_counts['Frio'] == 1:
             return 'Frio'
-        elif tone_counts['Calido'] > tone_counts['Frio']:
+        elif tone_counts['Calido'] == 1:
             return 'Calido'
         else:
             return 'Neutro'
@@ -331,7 +329,6 @@ class FacialRecognition(APIView):
         
         
         id = request.data.get('idusuario')
-        
         try:
             user = Usuarios.objects.get(idusuario= id)
         except:
@@ -358,7 +355,7 @@ class FacialRecognition(APIView):
         
         tonos_piel = attributes.get('tono_piel', [])
         
-        tono = self.determine_skin_tone(tonos_piel[0], tonos_piel[1], tonos_piel[2])
+        tono = self.determine_skin_tone(tonos_piel[0])
         
         tonos =  ",".join(tonos_piel)
         
@@ -423,7 +420,7 @@ class FacialRecognition(APIView):
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#E5E4E2', tono='Neutro')  # Oro blanco
                 Colorimetria.objects.create(idusuario=user, tipo='Joyeria', color='#B76E79', tono='Neutro')  # Oro rosa
             return JsonResponse({'msg':'Colorimetria actualizada con exito'})
-        else:
+        if created:
             if colorimetria.tono == 'Frio':
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#FFC0CB', tono='Frio')  # Rosado
                 Colorimetria.objects.create(idusuario=user, tipo='Ropa', color='#E75480', tono='Frio')  # Rojos
