@@ -73,7 +73,6 @@ class CreateUser(View):
                 Medidas.objects.filter(idusuario = usuario.idusuario).delete()
                 Rankings.objects.filter(idusuario = usuario.idusuario).delete()
                 Feedback.objects.filter(idusuario = usuario.idusuario).delete()
-                Recomendaciones.objects.filter(idusuario = usuario.idusuario).delete()
                 Preferencias.objects.filter(idusuario = usuario.idusuario).delete()
                 Usuarios.objects.filter(idusuario = usuario.idusuario).delete()
                 try:
