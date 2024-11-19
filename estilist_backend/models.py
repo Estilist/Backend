@@ -82,13 +82,11 @@ class Recomendaciones(models.Model):
     tipo = models.CharField(db_column='Tipo', max_length=50, blank=True, null=True, db_comment='Ropa, Cabello, Accesorios, Outfit')  # Field name made lowercase.
     categoria = models.CharField(db_column='Categoria', max_length=50, blank=True, null=True, db_comment='Camiseta, Pantalón, Pulsera, etc.')  # Field name made lowercase.
     genero = models.CharField(db_column='Genero', max_length=50, blank=True, null=True, db_comment='Masculino, Femenino, Unisex')  # Field name made lowercase.
-    ranking = models.DecimalField(db_column='Ranking', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
-    cont_ranking = models.SmallIntegerField(db_column='Cont_Ranking', blank=True, null=True)  # Field name made lowercase.
     etiquetas = models.JSONField(db_column='Etiquetas', blank=True, null=True, db_comment='Estilo, Color, Material, Temporada, Ocasión, etc.')  # Field name made lowercase.
     urlimagen = models.TextField(db_column='UrlImagen', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'Recomendaciones'
 
 class Rankings(models.Model):
