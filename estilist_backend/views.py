@@ -13,6 +13,7 @@ from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPerm
 import os, requests, uuid
 from datetime import datetime, timedelta
 import logging
+from django.db.models import Q
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -373,8 +374,7 @@ class FacialRecognition(APIView):
             )
         except:
             return JsonResponse({'error': 'Error al crear la colorimetria'}, status=500)
-        return JsonResponse({'tono': tono,
-                             'subtonos': tonos}, status=200)
+      
         if not created:
             Colorimetria.objects.filter(idusuario = id).delete()
             tono = Colorimetria.objects.create(idusuario=user, tipo='Subtonos', color=tonos, tono=tono)
@@ -574,3 +574,17 @@ class GetUploadUrlView(APIView):
             'fileUrl': file_url
         }, status=status.HTTP_200_OK)
         
+class UserRecomendation(APIView):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        id = data.get('idusuario')
+        evento = data.get('evento')
+        try:
+            user = Usuarios.objects.get(idusuario= id)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        if user.estado == False:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
