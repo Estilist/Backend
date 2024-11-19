@@ -255,29 +255,32 @@ def color_distance(c1, c2):
 
 class FacialRecognition(APIView):
     parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
-    
+
     WARM_TONES = [
-        hex_to_rgb('#FAD7B5'), hex_to_rgb('#E8A87C'),
-        hex_to_rgb('#D19063'), hex_to_rgb('#A66A44'),
-        hex_to_rgb('#8D5524'), hex_to_rgb('#C68642'),
-        hex_to_rgb('#9E5A3C')
+        (255, 211, 173),  # Muy claro
+        (230, 185, 148),  # Claro
+        (212, 154, 121),  # Medio
+        (176, 121, 89),   # Bronceado
+        (135, 83, 58)     # Oscuro cálido
     ]
 
     COLD_TONES = [
-        hex_to_rgb('#FFD1DC'), hex_to_rgb('#E0B1CB'),
-        hex_to_rgb('#B5838D'), hex_to_rgb('#6A515E'),
-        hex_to_rgb('#4E3629'), hex_to_rgb('#A270A4'),
-        hex_to_rgb('#8D5C84')
+        (255, 217, 203),  # Muy claro
+        (224, 178, 171),  # Claro
+        (181, 131, 141),  # Medio
+        (136, 91, 110),   # Bronceado frío
+        (90, 50, 65)      # Oscuro frío
     ]
 
     NEUTRAL_TONES = [
-        hex_to_rgb('#F0D5C9'), hex_to_rgb('#D9B6A3'),
-        hex_to_rgb('#C2A185'), hex_to_rgb('#8C7B6B'),
-        hex_to_rgb('#5D4631'), hex_to_rgb('#B2ADA3'),
-        hex_to_rgb('#8B8680')
+        (240, 213, 201),  # Muy claro
+        (217, 182, 163),  # Claro
+        (194, 161, 133),  # Medio
+        (140, 123, 107),  # Bronceado
+        (93, 70, 49)      # Oscuro neutral
     ]
     
-    THRESHOLD = 100  # Adjust the threshold as needed
+    THRESHOLD = 120  # Adjust the threshold as needed
     
     def match_tone(self, subtono_rgb):
         min_distance = float('inf')
