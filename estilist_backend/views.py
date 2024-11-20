@@ -75,6 +75,7 @@ class CreateUser(View):
                 Rankings.objects.filter(idusuario = usuario.idusuario).delete()
                 Feedback.objects.filter(idusuario = usuario.idusuario).delete()
                 Preferencias.objects.filter(idusuario = usuario.idusuario).delete()
+                ImagenesRostros.objects.filter(idusuario = usuario.idusuario).delete()
                 Usuarios.objects.filter(idusuario = usuario.idusuario).delete()
                 try:
                     usuario = Usuarios.objects.create(
