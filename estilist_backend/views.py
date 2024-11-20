@@ -616,11 +616,13 @@ class ClothesRecomendation(APIView):
         else:
             colors = ["Beige claro", "Beige suave", "Gris azulado", "Gris pardo", "Amarillo oliva", "Lavanda", "Rosa pálido"]
             jewels = ["Oro amarillo", "Oro blanco", "Oro rosa", style.joyeria]   
-            
-        prob = 0.928
+        ropa = 0.85
+        calzado = 0.925
+        accesorios = 0.965   
+        prob = random.random()
         # ******************* USING EVENT ***********************
         if evento != 'null': 
-            if prob < 0.7: # ***** ROPA *****
+            if prob < ropa: # ***** ROPA *****
                 color_queries = Q()
                 for color_item in colors:
                     color_queries |= Q(etiquetas__Color__contains=[color_item])
@@ -631,7 +633,7 @@ class ClothesRecomendation(APIView):
                     rankings__isnull=True,
                     etiquetas__Evento__contains=evento,
                 ).values_list('idrecomendacion', flat=True))
-            elif prob < 0.85: # ***** CALZADO *****
+            elif prob < calzado: # ***** CALZADO *****
                 color_queries = Q()
                 for color_item in colors:
                     color_queries |= Q(etiquetas__Color__contains=[color_item])
@@ -642,7 +644,7 @@ class ClothesRecomendation(APIView):
                     rankings__isnull=True,
                     etiquetas__Evento__contains=evento,
                 ).values_list('idrecomendacion', flat=True))
-            elif prob < 0.925: # ***** ACCESORIOS *****
+            elif prob < accesorios: # ***** ACCESORIOS *****
                 color_queries = Q()
                 for color_item in colors:
                     color_queries |= Q(etiquetas__Color__contains=[color_item])
@@ -664,7 +666,7 @@ class ClothesRecomendation(APIView):
                     rankings__isnull=True,
                 ).values_list('idrecomendacion', flat=True))
         else: # ******************* USING STYLE ***********************
-            if prob < 0.7: # ***** ROPA *****
+            if prob < ropa: # ***** ROPA *****
                 color_queries = Q()
                 for color_item in colors:
                     color_queries |= Q(etiquetas__Color__contains=[color_item])
@@ -675,7 +677,7 @@ class ClothesRecomendation(APIView):
                     rankings__isnull=True,
                     etiquetas__Estilo__contains=style.ropa,
                 ).values_list('idrecomendacion', flat=True))
-            elif prob < 0.85: # ***** CALZADO *****
+            elif prob < calzado: # ***** CALZADO *****
                 color_queries = Q()
                 for color_item in colors:
                     color_queries |= Q(etiquetas__Color__contains=[color_item])
@@ -686,7 +688,7 @@ class ClothesRecomendation(APIView):
                     rankings__isnull=True,
                     etiquetas__Estilo__contains=style.ropa,
                 ).values_list('idrecomendacion', flat=True))
-            elif prob < 0.925: # ***** ACCESORIOS *****
+            elif prob < accesorios: # ***** ACCESORIOS *****
                 color_queries = Q()
                 for color_item in colors:
                     color_queries |= Q(etiquetas__Color__contains=[color_item])
