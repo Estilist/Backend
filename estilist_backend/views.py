@@ -10,7 +10,7 @@ import json, datetime
 from django.contrib.auth.hashers import make_password, check_password
 from estilist_project import settings
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
-import os, requests, uuid
+import os, requests, uuid, random
 from datetime import datetime, timedelta
 import logging
 from django.db.models import Q
