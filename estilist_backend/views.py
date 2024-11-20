@@ -689,39 +689,34 @@ class RankRecomendation(APIView):
         except Recomendaciones.DoesNotExist:
             return JsonResponse({'error': 'Recomendacion no encontrada'}, status=404)
         
-        try:
-            ranking_value = data.get('ranking')
-            ranking, created = Rankings.objects.get_or_create(
-                idusuario=user,
-                idrecomendacion=recomendation,
-                defaults={
-                    'ranking': ranking_value,
-                    'fecha': datetime.now()
-                }
-            )
-        except Exception:
-            return JsonResponse({'error': 'Error al guardar el ranking'}, status=500)
+        ranking, created = Rankings.objects.get_or_create(
+            idusuario=user,
+            idrecomendacion=recomendation,
+            defaults = {
+                'ranking': data.get('ranking'),
+                'fecha': datetime.now()
+            }
+        )
         
         if not created:
+            ranking.ranking = data.get('ranking')
+            ranking.fecha = datetime.now()
             try:
-                old_ranking = recomendation.ranking
-                cont = recomendation.cont_ranking
-                if cont == 0:
-                    return JsonResponse({'error': 'Contador de ranking es cero'}, status=400)
-                
-                new_total = (ranking_value * cont - old_ranking + ranking_value) / cont
-                recomendation.ranking = new_total
-                ranking.ranking = ranking_value
-                ranking.fecha = datetime.now()
                 ranking.save()
-                return JsonResponse({'message': 'Ranking actualizado con exito'}, status=200)
-            except Exception:
+            except:
                 return JsonResponse({'error': 'Error al actualizar el ranking'}, status=500)
+        
+        nuevo_ranking = data.get('ranking')
+        total = recomendation.cont_ranking
+        promedio_actual = recomendation.ranking
+        if total == 0:
+            recomendation.ranking = nuevo_ranking
+            recomendation.cont_ranking = 1
         else:
-            try:
-                recomendation.cont_ranking += 1
-                recomendation.ranking = (recomendation.ranking * (recomendation.cont_ranking - 1) + data.get('ranking')) / recomendation.cont_ranking
-                recomendation.save()
-                return JsonResponse({'message': 'Ranking creado con exito'}, status=201)
-            except Exception:
-                return JsonResponse({'error': 'Error al guardar la recomendacion'}, status=500)
+            nuevo_promedio = (promedio_actual * total + nuevo_ranking) / (total + 1)
+            recomendation.ranking = nuevo_promedio
+            recomendation.cont_ranking = total + 1
+        recomendation.save()
+        
+        return JsonResponse({'message': 'Recomendacion calificada con exito'}, status=201)
+                
