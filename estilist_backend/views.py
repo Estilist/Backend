@@ -7,13 +7,12 @@ from .serializers import UsuariosSerializer, MeasuerementsSerializer, Colorimetr
 from django.views import View
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
-import json, datetime
 from estilist_project import settings
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
-import os, requests, uuid
 from datetime import datetime, timedelta
-import logging
 from django.db.models import Q
+import json, datetime, logging, requests, uuid, os, random
+from random import choice
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -575,7 +574,7 @@ class GetUploadUrlView(APIView):
             'fileUrl': file_url
         }, status=status.HTTP_200_OK)
         
-class UserRecomendation(APIView):
+class ClothesRecomendation(APIView):
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -591,7 +590,7 @@ class UserRecomendation(APIView):
             return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
         
         try:
-            colors = Colorimetria.objects.get(
+            color = Colorimetria.objects.get(
                 Q(idusuario=user),
                 Q(tipo='Subtonos')
             )
@@ -604,17 +603,64 @@ class UserRecomendation(APIView):
             )
         except:
             return JsonResponse({'error': 'Preferencias no encontradas'}, status=404)
-        
-        if evento != 'null':    # Sin evento
-            recomendation = Recomendaciones.objects.filter(
-                tipo__icontains="Ropa",
-                rankings__isnull=True,
-            ).order_by('?').first()
-        else:                   # Con evento
-            recomendation = Recomendaciones.objects.filter(
-                tipo__icontains="Ropa",
-                rankings__isnull=True,
-                etiquetas__Evento = evento
-            ).order_by('?').first()
+
+        colors = []
+        if color.tono == 'Frio':
+            colors = ["Rosado", "Rojo fucsia", "Rojo carmín", "Rojo vino oscuro", "Azul pálido", "Azul real", "Azul marino"]
+        elif color.tono == 'Calido':
+            colors = ["Amarillo claro", "Dorado brillante", "Dorado oscuro", "Melocotón pálido", "Melocotón vibrante", "Cobre rojizo", "Bronce"]
+        else:
+            colors = ["Beige claro", "Beige suave", "Gris azulado", "Gris pardo", "Amarillo oliva", "Lavanda", "Rosa pálido"]
+
+        color_queries = Q()
+        for color_item in colors:
+            color_queries |= Q(etiquetas__Color__contains=[color_item])
             
-        return JsonResponse({'recomendacion': [recomendation.etiquetas, recomendation.idrecomendacion]}, status=200)
+        prob = random.random()
+        
+        if evento != 'null': 
+            if prob < 0.7:
+                ids = list(Recomendaciones.objects.filter(
+                    color_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    tipo__icontains="Ropa",
+                    rankings__isnull=True,
+                    etiquetas__Evento__contains=evento,
+                ).values_list('idrecomendacion', flat=True))
+            elif prob < 1:  # ADD ACCESORIES
+                ids = list(Recomendaciones.objects.filter(
+                    color_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    tipo__icontains="Calzado",
+                    rankings__isnull=True,
+                    etiquetas__Evento__contains=evento,
+                ).values_list('idrecomendacion', flat=True))
+               
+        else:
+            if prob < 0.7:  
+                ids = list(Recomendaciones.objects.filter(
+                    color_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    etiquetas__Estilo__contains=style.ropa,
+                    tipo__icontains="Ropa",
+                    rankings__isnull=True,
+                ).values_list('idrecomendacion', flat=True))
+               
+            elif prob < 1:  # ADD ACCESORIES
+                ids = list(Recomendaciones.objects.filter(
+                    color_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    etiquetas__Estilo__contains=style.ropa,
+                    tipo__icontains="Calzado",
+                    rankings__isnull=True,
+                ).values_list('idrecomendacion', flat=True))
+
+        recomendation = Recomendaciones.objects.get(idrecomendacion=choice(ids)) if ids else None
+
+        if recomendation:
+            return JsonResponse({'img': recomendation.urlimagen,
+                                 'id': recomendation.idrecomendacion,
+                                 'tipo' : prob,
+                                 'recomendaciones totales' : len(ids)}, status=200)
+        else:
+            return JsonResponse({'message': 'No recommendations found.'}, status=404)
