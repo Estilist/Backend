@@ -13,6 +13,7 @@ from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPerm
 import os, requests, uuid
 from datetime import datetime, timedelta
 import logging
+from django.db.models import Q
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -256,30 +257,30 @@ def color_distance(c1, c2):
 class FacialRecognition(APIView):
     parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
 
-    WARM_TONES = [
-        (255, 211, 173),  # Muy claro
-        (230, 185, 148),  # Claro
-        (212, 154, 121),  # Medio
-        (176, 121, 89),   # Bronceado
-        (135, 83, 58)     # Oscuro cálido
+    WARM_TONES_HEX = [
+    hex_to_rgb('#FFD3AD'),  # Muy claro
+    hex_to_rgb('#E6B994'),  # Claro
+    hex_to_rgb('#D49A79'),  # Medio
+    hex_to_rgb('#B07959'),  # Bronceado
+    hex_to_rgb('#87573A')   # Oscuro cálido
     ]
 
-    COLD_TONES = [
-        (255, 217, 203),  # Muy claro
-        (224, 178, 171),  # Claro
-        (181, 131, 141),  # Medio
-        (136, 91, 110),   # Bronceado frío
-        (90, 50, 65)      # Oscuro frío
+    COLD_TONES_HEX = [
+        hex_to_rgb('#FFD9CB'),  # Muy claro
+        hex_to_rgb('#E0B2AB'),  # Claro
+        hex_to_rgb('#B5838D'),  # Medio
+        hex_to_rgb('#885B6E'),  # Bronceado frío
+        hex_to_rgb('#5A3241')  # Oscuro frío
     ]
 
-    NEUTRAL_TONES = [
-        (240, 213, 201),  # Muy claro
-        (217, 182, 163),  # Claro
-        (194, 161, 133),  # Medio
-        (140, 123, 107),  # Bronceado
-        (93, 70, 49)      # Oscuro neutral
+    NEUTRAL_TONES_HEX = [
+        hex_to_rgb('#F0D5C9'),  # Muy claro
+        hex_to_rgb('#D9B6A3'),  # Claro
+        hex_to_rgb('#C2A185'),  # Medio
+        hex_to_rgb('#8C7B6B'),  # Bronceado
+        hex_to_rgb('#5D4631')   # Oscuro neutral
     ]
-    
+        
     THRESHOLD = 120  # Adjust the threshold as needed
     
     def match_tone(self, subtono_rgb):
@@ -573,3 +574,40 @@ class GetUploadUrlView(APIView):
             'fileUrl': file_url
         }, status=status.HTTP_200_OK)
         
+class UserRecomendation(APIView):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        id = data.get('idusuario')
+        evento = data.get('evento')
+        try:
+            user = Usuarios.objects.get(idusuario= id)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        if user.estado == False:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        
+        try:
+            colors = Colorimetria.objects.get(
+                Q(idusuario=user),
+                Q(tipo='Subtonos')
+            )
+        except:
+            return JsonResponse({'error': 'Colorimetria no encontrada'}, status=404)
+        
+        try:
+            style = Preferencias.objects.get(
+                idusuario=user
+            )
+        except:
+            return JsonResponse({'error': 'Preferencias no encontradas'}, status=404)
+        
+        if evento != None:  
+            recomendation = Recomendaciones.objects.filter(
+                Q(tipo__icontains="Ropa"),
+                rankings__isnull=True,
+            ).order_by('?').first()
+            
+        return JsonResponse({'recomendacion': recomendation.etiquetas}, status=200)
