@@ -6,12 +6,14 @@ from .models import Usuarios, Medidas, Preferencias, Colorimetria, Feedback, Ran
 from .serializers import UsuariosSerializer, MeasuerementsSerializer, ColorimetriaSerializer
 from django.views import View
 from django.http import JsonResponse
+import json, datetime
 from django.contrib.auth.hashers import make_password, check_password
 from estilist_project import settings
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+import os, requests, uuid
 from datetime import datetime, timedelta
+import logging
 from django.db.models import Q
-import json, logging, requests, uuid, os, random, datetime
 from random import choice
 
 class UsuariosViewSet(viewsets.ModelViewSet):
