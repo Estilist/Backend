@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from django.db.models import Q
 import json, logging, requests, uuid, os, random, datetime
 from random import choice
-from datetime import datetime, deltatime
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
