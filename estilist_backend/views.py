@@ -609,51 +609,102 @@ class ClothesRecomendation(APIView):
         colors = []
         if color.tono == 'Frio':
             colors = ["Rosado", "Rojo fucsia", "Rojo carmín", "Rojo vino oscuro", "Azul pálido", "Azul real", "Azul marino"]
+            jewels = ["Oro blanco", "Plata", "Platino", style.joyeria]
         elif color.tono == 'Calido':
             colors = ["Amarillo claro", "Dorado brillante", "Dorado oscuro", "Melocotón pálido", "Melocotón vibrante", "Cobre rojizo", "Bronce"]
+            jewels = ["Oro amarillo", "Oro rosa", style.joyeria]
         else:
             colors = ["Beige claro", "Beige suave", "Gris azulado", "Gris pardo", "Amarillo oliva", "Lavanda", "Rosa pálido"]
-
-        color_queries = Q()
-        for color_item in colors:
-            color_queries |= Q(etiquetas__Color__contains=[color_item])
+            jewels = ["Oro amarillo", "Oro blanco", "Oro rosa", style.joyeria]   
             
-        prob = random.random()
-        
+        prob = 0.928
+        # ******************* USING EVENT ***********************
         if evento != 'null': 
-            if prob < 0.7:
+            if prob < 0.7: # ***** ROPA *****
+                color_queries = Q()
+                for color_item in colors:
+                    color_queries |= Q(etiquetas__Color__contains=[color_item])
                 ids = list(Recomendaciones.objects.filter(
                     color_queries,
                     (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                    tipo__icontains="Ropa",
+                    tipo__icontains="Ropa", 
                     rankings__isnull=True,
                     etiquetas__Evento__contains=evento,
                 ).values_list('idrecomendacion', flat=True))
-            elif prob < 1:  # ADD ACCESORIES
+            elif prob < 0.85: # ***** CALZADO *****
+                color_queries = Q()
+                for color_item in colors:
+                    color_queries |= Q(etiquetas__Color__contains=[color_item])
                 ids = list(Recomendaciones.objects.filter(
                     color_queries,
                     (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                    tipo__icontains="Calzado",
+                    tipo__icontains="Calzado", 
                     rankings__isnull=True,
                     etiquetas__Evento__contains=evento,
                 ).values_list('idrecomendacion', flat=True))
-               
-        else:
-            if prob < 0.7:  
+            elif prob < 0.925: # ***** ACCESORIOS *****
+                color_queries = Q()
+                for color_item in colors:
+                    color_queries |= Q(etiquetas__Color__contains=[color_item])
                 ids = list(Recomendaciones.objects.filter(
                     color_queries,
                     (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                    etiquetas__Estilo__contains=style.ropa,
-                    tipo__icontains="Ropa",
+                    tipo__icontains="Accesorio", 
+                    rankings__isnull=True,
+                    etiquetas__Evento__contains=evento,
+                ).values_list('idrecomendacion', flat=True))
+            else: # ***** JOYERIA *****
+                jewels_queries = Q()
+                for jewel in jewels:
+                    jewels_queries |= Q(tipo__icontains="Joyería") & Q(etiquetas__Color__contains=[jewel])
+                ids = list(Recomendaciones.objects.filter(
+                    jewels_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    tipo__icontains="Joyería", 
                     rankings__isnull=True,
                 ).values_list('idrecomendacion', flat=True))
-               
-            elif prob < 1:  # ADD ACCESORIES
+        else: # ******************* USING STYLE ***********************
+            if prob < 0.7: # ***** ROPA *****
+                color_queries = Q()
+                for color_item in colors:
+                    color_queries |= Q(etiquetas__Color__contains=[color_item])
                 ids = list(Recomendaciones.objects.filter(
                     color_queries,
                     (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    tipo__icontains="Ropa", 
+                    rankings__isnull=True,
                     etiquetas__Estilo__contains=style.ropa,
-                    tipo__icontains="Calzado",
+                ).values_list('idrecomendacion', flat=True))
+            elif prob < 0.85: # ***** CALZADO *****
+                color_queries = Q()
+                for color_item in colors:
+                    color_queries |= Q(etiquetas__Color__contains=[color_item])
+                ids = list(Recomendaciones.objects.filter(
+                    color_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    tipo__icontains="Calzado", 
+                    rankings__isnull=True,
+                    etiquetas__Estilo__contains=style.ropa,
+                ).values_list('idrecomendacion', flat=True))
+            elif prob < 0.925: # ***** ACCESORIOS *****
+                color_queries = Q()
+                for color_item in colors:
+                    color_queries |= Q(etiquetas__Color__contains=[color_item])
+                ids = list(Recomendaciones.objects.filter(
+                    color_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    tipo__icontains="Accesorio", 
+                    rankings__isnull=True,
+                    etiquetas__Estilo__contains=style.accesorios,
+                ).values_list('idrecomendacion', flat=True))
+            else: # ***** JOYERIA *****
+                jewels_queries = Q()
+                for jewel in jewels:
+                    jewels_queries |= Q(tipo__icontains="Joyería") & Q(etiquetas__Color__contains=[jewel])
+                ids = list(Recomendaciones.objects.filter(
+                    jewels_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    tipo__icontains="Joyería", 
                     rankings__isnull=True,
                 ).values_list('idrecomendacion', flat=True))
 
