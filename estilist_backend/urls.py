@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from estilist_backend.views import CreateUser, UsuariosViewSet, CheckUser, MeauserementsViewSet, UserMeasurements, FacialRecognition, UserPreferences, GetUploadUrlView, ColorimetriaViewSet, DeleteUser, ClothesRecomendation
+from estilist_backend.views import CreateUser, UsuariosViewSet, CheckUser, MeauserementsViewSet, UserMeasurements, FacialRecognition, UserPreferences, GetUploadUrlView, ColorimetriaViewSet, DeleteUser, ClothesRecomendation, RankRecomendation
 
 router = routers.DefaultRouter()    
 router.register(r'users', UsuariosViewSet)
@@ -20,4 +20,5 @@ urlpatterns = [
     path('user-preferences/', UserPreferences.as_view(), name='user_preferences'),
     path('upload-url/', GetUploadUrlView.as_view(), name='upload_url'),
     path('user-recomendation/', ClothesRecomendation.as_view(), name='user_recomendation'),
+    path('rank-recomendation/', RankRecomendation.as_view(), name='rank_recomendation'),
 ]

@@ -11,8 +11,9 @@ from estilist_project import settings
 from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 from datetime import datetime, timedelta
 from django.db.models import Q
-import json, datetime, logging, requests, uuid, os, random
+import json, logging, requests, uuid, os, random
 from random import choice
+from datetime import datetime
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -664,3 +665,54 @@ class ClothesRecomendation(APIView):
                                  'recomendaciones totales' : len(ids)}, status=200)
         else:
             return JsonResponse({'message': 'No recommendations found.'}, status=404)
+
+class RankRecomendation(APIView):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        id = data.get('idusuario')
+        
+        try:
+            user = Usuarios.objects.get(idusuario= id)
+        except:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        if user.estado == False:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        try:
+            recomendation = Recomendaciones.objects.get(idrecomendacion= data.get('idrecomendacion'))
+        except:
+            return JsonResponse({'error': 'Recomendacion no encontrada'}, status=404)
+        try:
+            ranking, created = Rankings.objects.get_or_create(
+                idusuario=user,
+                idrecomendacion=recomendation,
+                defaults={
+                    'ranking': data.get('ranking'),
+                    'fecha': datetime.now()
+                }
+            )
+        except:
+            return JsonResponse({'error': 'Error al guardar el ranking'}, status=500)
+        
+        if not created:
+            ranking.ranking = data.get('ranking')
+            ranking.fecha = datetime.now()
+            old_ranking = recomendation.ranking
+            new_ranking = data.get('ranking')
+            ranking.ranking = new_ranking
+            recomendation.ranking = (recomendation.ranking * recomendation.cont_ranking - old_ranking + new_ranking) / recomendation.cont_ranking
+            try:
+                ranking.save()
+            except:
+                return JsonResponse({'error': 'Error al actualizar el ranking'}, status=500)
+            return JsonResponse({'message': 'Ranking actualizado con exito'}, status=200)
+        else:
+            act = recomendation.cont_ranking + 1
+            recomendation.cont_ranking = act 
+            recomendation.ranking = (recomendation.ranking + data.get('ranking'))/recomendation.cont_ranking
+            try:
+                recomendation.save()
+            except:
+                return JsonResponse({'error': 'Error al actualizar el ranking'}, status=500)
