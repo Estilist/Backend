@@ -604,10 +604,16 @@ class UserRecomendation(APIView):
         except:
             return JsonResponse({'error': 'Preferencias no encontradas'}, status=404)
         
-        if evento != None:  
+        if evento != 'null':    # Sin evento
             recomendation = Recomendaciones.objects.filter(
-                Q(tipo__icontains="Ropa"),
+                tipo__icontains="Ropa",
                 rankings__isnull=True,
             ).order_by('?').first()
+        else:                   # Con evento
+            recomendation = Recomendaciones.objects.filter(
+                tipo__icontains="Ropa",
+                rankings__isnull=True,
+                etiquetas__Evento = evento
+            ).order_by('?').first()
             
-        return JsonResponse({'recomendacion': recomendation.etiquetas}, status=200)
+        return JsonResponse({'recomendacion': [recomendation.etiquetas, recomendation.idrecomendacion]}, status=200)
