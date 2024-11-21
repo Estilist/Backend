@@ -795,15 +795,14 @@ class RankRecomendation(APIView):
         if total == 0:
             recomendation.ranking = nuevo_ranking
             recomendation.cont_ranking = 1
-        else:
-            nuevo_promedio = (promedio_actual * total + nuevo_ranking) / (total + 1)
-            recomendation.ranking = nuevo_promedio
-            recomendation.cont_ranking = total + 1
+        # else:
+        #     nuevo_promedio = (promedio_actual * total + nuevo_ranking) / (total + 1)
+        #     recomendation.ranking = nuevo_promedio
+        #     recomendation.cont_ranking = total + 1
 
         try:
             recomendation.save()
-        except Exception as e:
-            logging.error(f"Error al guardar la recomendación: {e}")
+        except:
             return JsonResponse({'error': 'Error al guardar la recomendación'}, status=500)
 
         return JsonResponse({'message': 'Recomendacion calificada con exito'}, status=201)
