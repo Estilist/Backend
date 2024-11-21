@@ -802,3 +802,29 @@ class RankRecomendation(APIView):
             return JsonResponse({'error': 'Error al guardar la recomendación'}, status=500)
 
         return JsonResponse({'message': 'Recomendacion calificada con exito'}, status=201)
+    
+class PostFeedback(APIView):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        id = data.get('idusuario')
+        
+        try:
+            user = Usuarios.objects.get(idusuario=id)
+        except Usuarios.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        if not user.estado:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        
+        Feedback.objects.create(
+            idusuario=user,
+            ranking=data.get('ranking'),
+            comentarios=data.get('comentarios'),
+            fecha=datetime.now()
+        )
+        
+        return JsonResponse({'message': 'Feedback enviado con exito'}, status=201)
