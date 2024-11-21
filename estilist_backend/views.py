@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import logging
 from django.db.models import Q
 from random import choice
+import random
 
 class UsuariosViewSet(viewsets.ModelViewSet):
     queryset = Usuarios.objects.all()
@@ -620,7 +621,7 @@ class ClothesRecomendation(APIView):
         ropa = 0.85
         calzado = 0.925
         accesorios = 0.965
-        # prob = random.random()
+        prob = random.random()
         # ******************* USING EVENT ***********************
         if evento != None: 
             if prob < ropa: # ***** ROPA *****
@@ -749,47 +750,47 @@ class RankRecomendation(APIView):
         
         id = data.get('idusuario')
         
-        try:
-            user = Usuarios.objects.get(idusuario=id)
-        except Usuarios.DoesNotExist:
-            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        # try:
+        #     user = Usuarios.objects.get(idusuario=id)
+        # except Usuarios.DoesNotExist:
+        #     return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
         
-        if not user.estado:
-            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        # if not user.estado:
+        #     return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
         
-        try:
-            recomendation = Recomendaciones.objects.get(idrecomendacion=data.get('idrecomendacion'))
-        except Recomendaciones.DoesNotExist:
-            return JsonResponse({'error': 'Recomendacion no encontrada'}, status=404)
+        # try:
+        #     recomendation = Recomendaciones.objects.get(idrecomendacion=data.get('idrecomendacion'))
+        # except Recomendaciones.DoesNotExist:
+        #     return JsonResponse({'error': 'Recomendacion no encontrada'}, status=404)
         
-        ranking, created = Rankings.objects.get_or_create(
-            idusuario=user,
-            idrecomendacion=recomendation,
-            defaults = {
-                'ranking': data.get('ranking'),
-                'fecha': datetime.now()
-            }
-        )
+        # ranking, created = Rankings.objects.get_or_create(
+        #     idusuario=user,
+        #     idrecomendacion=recomendation,
+        #     defaults = {
+        #         'ranking': data.get('ranking'),
+        #         'fecha': datetime.now()
+        #     }
+        # )
         
-        if not created:
-            ranking.ranking = data.get('ranking')
-            ranking.fecha = datetime.now()
-            try:
-                ranking.save()
-            except:
-                return JsonResponse({'error': 'Error al actualizar el ranking'}, status=500)
+        # if not created:
+        #     ranking.ranking = data.get('ranking')
+        #     ranking.fecha = datetime.now()
+        #     try:
+        #         ranking.save()
+        #     except:
+        #         return JsonResponse({'error': 'Error al actualizar el ranking'}, status=500)
         
-        nuevo_ranking = data.get('ranking')
-        total = recomendation.cont_ranking
-        promedio_actual = recomendation.ranking
-        if total == 0:
-            recomendation.ranking = nuevo_ranking
-            recomendation.cont_ranking = 1
-        else:
-            nuevo_promedio = (promedio_actual * total + nuevo_ranking) / (total + 1)
-            recomendation.ranking = nuevo_promedio
-            recomendation.cont_ranking = total + 1
-        recomendation.save()
+        # nuevo_ranking = data.get('ranking')
+        # total = recomendation.cont_ranking
+        # promedio_actual = recomendation.ranking
+        # if total == 0:
+        #     recomendation.ranking = nuevo_ranking
+        #     recomendation.cont_ranking = 1
+        # else:
+        #     nuevo_promedio = (promedio_actual * total + nuevo_ranking) / (total + 1)
+        #     recomendation.ranking = nuevo_promedio
+        #     recomendation.cont_ranking = total + 1
+        # recomendation.save()
         
-        return JsonResponse({'message': 'Recomendacion calificada con exito'}, status=201)
+        # return JsonResponse({'message': 'Recomendacion calificada con exito'}, status=201)
                 
