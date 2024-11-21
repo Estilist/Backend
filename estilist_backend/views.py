@@ -858,3 +858,34 @@ class BeutyRecomendation(APIView):
         if not user.estado:
             return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
 
+class GetRankings(APIView):
+    def get(self, request):
+        id = request.query_params.get('idusuario')
+        temporada = request.query_params.get('temporada')
+
+        try:
+            user = Usuarios.objects.get(idusuario=id)
+        except Usuarios.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        if not user.estado:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        
+        if not ('favoritos' in request.query_params):
+            rankings = Rankings.objects.filter(idusuario=user).values_list('idrecomendacion')
+            
+            filtered = Recomendaciones.objects.filter(
+                Q(idrecomendacion__in=[ranking[0] for ranking in rankings]),
+                etiquetas__Temporada__icontains=temporada,
+            ).values_list("urlimagen", "idrecomendacion")
+        else:
+            rankings = Rankings.objects.filter(idusuario=user, ranking__gte=4).values_list('idrecomendacion')
+            filtered = Recomendaciones.objects.filter(
+                Q(idrecomendacion__in=[ranking[0] for ranking in rankings]),
+            ).values_list("urlimagen", "idrecomendacion")
+
+        
+        return JsonResponse({'rankings': [list(filtered)]}, status=200)
+        
+        
+        
