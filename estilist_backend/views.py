@@ -841,23 +841,6 @@ class PostFeedback(APIView):
         
         return JsonResponse({'message': 'Feedback enviado con exito'}, status=201)
     
-class BeutyRecomendation(APIView):
-    def post(self, request):
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-        
-        id = data.get('idusuario')
-        
-        try:
-            user = Usuarios.objects.get(idusuario=id)
-        except Usuarios.DoesNotExist:
-            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-        
-        if not user.estado:
-            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
-
 class GetRankings(APIView):
     def get(self, request):
         id = request.query_params.get('idusuario')
