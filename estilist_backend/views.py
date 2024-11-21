@@ -625,57 +625,16 @@ class ClothesRecomendation(APIView):
         prob = random.random()
         # ******************* USING EVENT ***********************
         if evento != None: 
-            if prob < ropa: # ***** ROPA *****
-                color_queries = Q()
-                for color_item in colors:
-                    color_queries |= Q(etiquetas__Color__contains=[color_item])
-                ids = list(Recomendaciones.objects.filter(
-                    color_queries,
-                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                    tipo__icontains="Ropa", 
-                    rankings__isnull=True,
-                    etiquetas__Evento__contains=evento,
-                ).values_list('idrecomendacion', flat=True))
-                if len(ids) == 0: # ************************** IF LEN OF IDS IS 0 THEN GET ALL CLOTHES ************************
-                        ids = list(Recomendaciones.objects.filter(
-                        color_queries,
-                        (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                        tipo__icontains="Ropa", 
-                        rankings__isnull=True,
-                        ).values_list('idrecomendacion', flat=True))
-                        
-            elif prob < calzado: # ***** CALZADO *****
-                color_queries = Q()
-                for color_item in colors:
-                    color_queries |= Q(etiquetas__Color__contains=[color_item])
-                ids = list(Recomendaciones.objects.filter(
-                    color_queries,
-                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                    tipo__icontains="Calzado", 
-                    rankings__isnull=True,
-                    etiquetas__Evento__contains=evento,
-                ).values_list('idrecomendacion', flat=True))
-            elif prob < accesorios: # ***** ACCESORIOS *****
-                color_queries = Q()
-                for color_item in colors:
-                    color_queries |= Q(etiquetas__Color__contains=[color_item])
-                ids = list(Recomendaciones.objects.filter(
-                    color_queries,
-                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                    tipo__icontains="Accesorio", 
-                    rankings__isnull=True,
-                    etiquetas__Evento__contains=evento,
-                ).values_list('idrecomendacion', flat=True))
-            else: # ***** JOYERIA *****
-                jewels_queries = Q()
-                for jewel in jewels:
-                    jewels_queries |= Q(tipo__icontains="Joyería") & Q(etiquetas__Color__contains=[jewel])
-                ids = list(Recomendaciones.objects.filter(
-                    jewels_queries,
-                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                    tipo__icontains="Joyería", 
-                    rankings__isnull=True,
-                ).values_list('idrecomendacion', flat=True))
+            color_queries = Q()
+            for color_item in colors:
+                color_queries |= Q(etiquetas__Color__contains=[color_item])
+            ids = list(Recomendaciones.objects.filter(
+                color_queries,
+                (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                tipo__icontains="Ropa", 
+                rankings__isnull=True,
+                etiquetas__Evento__contains=evento,
+            ).values_list('idrecomendacion', flat=True))
         else: # ******************* USING STYLE ***********************
             if prob < ropa: # ***** ROPA *****
                 color_queries = Q()
