@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import logging
 from django.db.models import Q
 from random import choice
+from django.db import transaction
 import random
 
 class UsuariosViewSet(viewsets.ModelViewSet):
@@ -789,17 +790,21 @@ class RankRecomendation(APIView):
         except ValueError:
             return JsonResponse({'error': 'Ranking debe ser un número'}, status=400)
 
-        if recomendation.cont_ranking == 0:
-            recomendation.ranking = nuevo_ranking
-            recomendation.cont_ranking = 1
-        else:
-            recomendation.ranking = (recomendation.ranking * recomendation.cont_ranking + nuevo_ranking) / (recomendation.cont_ranking + 1)
-            recomendation.cont_ranking = recomendation.cont_ranking + 1
-
         try:
-            recomendation.save()
-        except:
-            return JsonResponse({'error': 'Error al guardar la recomendación'}, status=500)
+            with transaction.atomic():
+                if recomendation.cont_ranking == 0:
+                    recomendation.ranking = nuevo_ranking
+                    recomendation.cont_ranking = 1
+                else:
+                    recomendation.ranking = (
+                        (recomendation.ranking * recomendation.cont_ranking + nuevo_ranking) /
+                        (recomendation.cont_ranking + 1)
+                    )
+                    recomendation.cont_ranking += 1
+
+                recomendation.save()
+        except Exception as e:
+            return JsonResponse({'error': f'Error al guardar la recomendación: {str(e)}'}, status=500)
 
         return JsonResponse({'message': 'Recomendacion calificada con exito'}, status=201)
     
