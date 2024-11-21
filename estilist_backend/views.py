@@ -260,7 +260,7 @@ def color_distance(c1, c2):
 class FacialRecognition(APIView):
     parser_classes = [MultiPartParser, FormParser]  # Permite recibir multipart/form-data y x-www-form-urlencoded
 
-    WARM_TONES_HEX = [
+    WARM_TONES = [
     hex_to_rgb('#FFD3AD'),  # Muy claro
     hex_to_rgb('#E6B994'),  # Claro
     hex_to_rgb('#D49A79'),  # Medio
@@ -268,7 +268,7 @@ class FacialRecognition(APIView):
     hex_to_rgb('#87573A')   # Oscuro cálido
     ]
 
-    COLD_TONES_HEX = [
+    COLD_TONES = [
         hex_to_rgb('#FFD9CB'),  # Muy claro
         hex_to_rgb('#E0B2AB'),  # Claro
         hex_to_rgb('#B5838D'),  # Medio
@@ -276,7 +276,7 @@ class FacialRecognition(APIView):
         hex_to_rgb('#5A3241')  # Oscuro frío
     ]
 
-    NEUTRAL_TONES_HEX = [
+    NEUTRAL_TONES = [
         hex_to_rgb('#F0D5C9'),  # Muy claro
         hex_to_rgb('#D9B6A3'),  # Claro
         hex_to_rgb('#C2A185'),  # Medio
@@ -750,35 +750,35 @@ class RankRecomendation(APIView):
         
         id = data.get('idusuario')
         
-        # try:
-        #     user = Usuarios.objects.get(idusuario=id)
-        # except Usuarios.DoesNotExist:
-        #     return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        try:
+            user = Usuarios.objects.get(idusuario=id)
+        except Usuarios.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
         
-        # if not user.estado:
-        #     return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+        if not user.estado:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
         
-        # try:
-        #     recomendation = Recomendaciones.objects.get(idrecomendacion=data.get('idrecomendacion'))
-        # except Recomendaciones.DoesNotExist:
-        #     return JsonResponse({'error': 'Recomendacion no encontrada'}, status=404)
+        try:
+            recomendation = Recomendaciones.objects.get(idrecomendacion=data.get('idrecomendacion'))
+        except Recomendaciones.DoesNotExist:
+            return JsonResponse({'error': 'Recomendacion no encontrada'}, status=404)
         
-        # ranking, created = Rankings.objects.get_or_create(
-        #     idusuario=user,
-        #     idrecomendacion=recomendation,
-        #     defaults = {
-        #         'ranking': data.get('ranking'),
-        #         'fecha': datetime.now()
-        #     }
-        # )
+        ranking, created = Rankings.objects.get_or_create(
+            idusuario=user,
+            idrecomendacion=recomendation,
+            defaults = {
+                'ranking': data.get('ranking'),
+                'fecha': datetime.now()
+            }
+        )
         
-        # if not created:
-        #     ranking.ranking = data.get('ranking')
-        #     ranking.fecha = datetime.now()
-        #     try:
-        #         ranking.save()
-        #     except:
-        #         return JsonResponse({'error': 'Error al actualizar el ranking'}, status=500)
+        if not created:
+            ranking.ranking = data.get('ranking')
+            ranking.fecha = datetime.now()
+            try:
+                ranking.save()
+            except:
+                return JsonResponse({'error': 'Error al actualizar el ranking'}, status=500)
         
         # nuevo_ranking = data.get('ranking')
         # total = recomendation.cont_ranking
