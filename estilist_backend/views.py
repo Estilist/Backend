@@ -789,16 +789,12 @@ class RankRecomendation(APIView):
         except ValueError:
             return JsonResponse({'error': 'Ranking debe ser un número'}, status=400)
 
-        total = recomendation.cont_ranking
-        promedio_actual = recomendation.ranking
-
-        if total == 0:
+        if recomendation.cont_ranking == 0:
             recomendation.ranking = nuevo_ranking
             recomendation.cont_ranking = 1
-        # else:
-        #     nuevo_promedio = (promedio_actual * total + nuevo_ranking) / (total + 1)
-        #     recomendation.ranking = nuevo_promedio
-        #     recomendation.cont_ranking = total + 1
+        else:
+            recomendation.ranking = (recomendation.ranking * recomendation.cont_ranking + nuevo_ranking) / (recomendation.cont_ranking + 1)
+            recomendation.cont_ranking = recomendation.cont_ranking + 1
 
         try:
             recomendation.save()
