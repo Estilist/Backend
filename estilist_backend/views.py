@@ -619,9 +619,9 @@ class ClothesRecomendation(APIView):
             colors = ["Beige claro", "Beige suave", "Gris azulado", "Gris pardo", "Amarillo oliva", "Lavanda", "Rosa pálido"]
             jewels = ["Oro amarillo", "Oro blanco", "Oro rosa", style.joyeria]   
         
-        ropa = 0.85
-        calzado = 0.925
-        accesorios = 0.965
+        ropa = 0.75
+        calzado = 0.835
+        accesorios = 0.916
         prob = random.random()
         # ******************* USING EVENT ***********************
         if evento != None: 
@@ -681,7 +681,7 @@ class ClothesRecomendation(APIView):
                 color_queries = Q()
                 for color_item in colors:
                     color_queries |= Q(etiquetas__Color__contains=[color_item])
-                if prob < 0.425:
+                if prob < 0.375:
                     ids = list(Recomendaciones.objects.filter(
                         color_queries,
                         (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
@@ -697,12 +697,19 @@ class ClothesRecomendation(APIView):
                         rankings__isnull=True,
                         ).values_list('idrecomendacion', flat=True))
                 else:
-                    ids = list(Recomendaciones.objects.filter(
-                        color_queries,
-                        (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                        tipo__icontains="Ropa", 
-                        rankings__isnull=True,
-                    ).values_list('idrecomendacion', flat=True))
+                    if prob < 0.45:
+                        ids = list(Recomendaciones.objects.filter(
+                            (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                            tipo__icontains="Ropa", 
+                            rankings__isnull=True,
+                        ).values_list('idrecomendacion', flat=True))
+                    else:
+                        ids = list(Recomendaciones.objects.filter(
+                            color_queries,
+                            (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                            tipo__icontains="Ropa", 
+                            rankings__isnull=True,
+                        ).values_list('idrecomendacion', flat=True))
             elif prob < calzado: # ***** CALZADO *****
                 color_queries = Q()
                 for color_item in colors:
@@ -833,3 +840,21 @@ class PostFeedback(APIView):
         )
         
         return JsonResponse({'message': 'Feedback enviado con exito'}, status=201)
+    
+class BeutyRecomendation(APIView):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        id = data.get('idusuario')
+        
+        try:
+            user = Usuarios.objects.get(idusuario=id)
+        except Usuarios.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        if not user.estado:
+            return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
+
