@@ -861,7 +861,6 @@ class BeutyRecomendation(APIView):
 class GetRankings(APIView):
     def get(self, request):
         id = request.query_params.get('idusuario')
-        temporada = request.query_params.get('temporada')
 
         try:
             user = Usuarios.objects.get(idusuario=id)
@@ -872,6 +871,7 @@ class GetRankings(APIView):
             return JsonResponse({'error': 'Usuario deshabilitado'}, status=401)
         
         if not ('favoritos' in request.query_params):
+            temporada = request.query_params.get('temporada')
             rankings = Rankings.objects.filter(idusuario=user).values_list('idrecomendacion')
             
             filtered = Recomendaciones.objects.filter(
