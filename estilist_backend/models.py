@@ -112,3 +112,12 @@ class ImagenesRostros(models.Model):
         managed = False
         db_table = 'Imagenes_Rostros'
 
+class Streak(models.Model):
+    idstreak = models.AutoField(db_column='IdStreak', primary_key=True)  # Field name made lowercase.
+    idusuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='IdUsuario', blank=True, null=True)  # Field name made lowercase.
+    ultimasesion = models.DateTimeField(db_column='UltimaSesion', blank=True, null=True)  # Field name made lowercase.
+    dias = models.SmallIntegerField(db_column='Dias', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta: 
+        managed = True
+        db_table = 'Streak'

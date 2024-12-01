@@ -2,9 +2,10 @@ from rest_framework import viewsets, status
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Usuarios, Medidas, Preferencias, Colorimetria, Feedback, Rankings, Recomendaciones, ImagenesRostros
+from .models import Usuarios, Medidas, Preferencias, Colorimetria, Feedback, Rankings, Recomendaciones, ImagenesRostros, Streak
 from .serializers import UsuariosSerializer, MeasuerementsSerializer, ColorimetriaSerializer
 from django.views import View
+from django.utils import timezone
 from django.http import JsonResponse
 import json, datetime
 from django.contrib.auth.hashers import make_password, check_password
@@ -829,5 +830,44 @@ class GetRankings(APIView):
         
         return JsonResponse({'rankings': [list(filtered)]}, status=200)
         
+class StreakView(APIView):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        id = data.get('idusuario') 
         
+        try:
+            user = Usuarios.objects.get(idusuario=id)
+        except Usuarios.DoesNotExist:
+            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+       
+        streak, created = Streak.objects.get_or_create(
+                idusuario=user,
+                    defaults = {
+                    'ultimasesion': timezone.now(),
+                    'dias': '1'
+                }
+            )
         
+        if not created:
+            
+            if (timezone.now() - streak.ultimasesion).days == 1:
+                streak.dias += 1
+                streak.ultimasesion = timezone.now()
+                streak.save()
+                return JsonResponse({'message': '¡Haz aumentado la racha a '+ str(streak.dias) + ' dias!',
+                                     'dias': streak.dias}, status=200)
+            elif (timezone.now() - streak.ultimasesion).days == 0:
+                return JsonResponse({'message': 'Ya utilizaste tu aumento de racha hoy.',
+                                     'dias': streak.dias}, status=200)
+            else:
+                streak.dias = 1
+                streak.ultimasesion = timezone.now()
+                streak.save()
+                return JsonResponse({'message': 'Tu racha se ha reiniciado a 1 dia.',
+                                     'dias': streak.dias}, status=200)
+        else:
+            return JsonResponse({'message': 'Tu racha ha comenzado!',
+                                     'dias': streak.dias}, status=200)
