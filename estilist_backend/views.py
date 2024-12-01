@@ -3,7 +3,7 @@ from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Usuarios, Medidas, Preferencias, Colorimetria, Feedback, Rankings, Recomendaciones, ImagenesRostros, Streak
-from .serializers import UsuariosSerializer, MeasuerementsSerializer, ColorimetriaSerializer
+from .serializers import UsuariosSerializer, MeasuerementsSerializer, ColorimetriaSerializer, StreakSerializer
 from django.views import View
 from django.utils import timezone
 from django.http import JsonResponse
@@ -42,6 +42,14 @@ class ColorimetriaViewSet(viewsets.ModelViewSet):
             return Colorimetria.objects.filter(idusuario=idusuario)
         return Colorimetria.objects.all()
     
+class StreakView(viewsets.ModelViewSet):
+    queryset = Streak.objects.all()
+    serializer_class = StreakSerializer
+    lookup_field = 'idusuario'
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed("POST", detail="No está permitido crear nuevas mediciones.")
+    
+
 class CreateUser(View):
     def post(self, request):
         try:
