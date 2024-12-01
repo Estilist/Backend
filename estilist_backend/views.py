@@ -625,17 +625,37 @@ class ClothesRecomendation(APIView):
         accesorios = 0.916
         prob = random.random()
         # ******************* USING EVENT ***********************
-        if evento != None: 
-            color_queries = Q()
-            for color_item in colors:
-                color_queries |= Q(etiquetas__Color__contains=[color_item])
-            ids = list(Recomendaciones.objects.filter(
-                color_queries,
-                (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                tipo__icontains="Ropa", 
-                rankings__isnull=True,
-                etiquetas__Evento__contains=evento,
-            ).values_list('idrecomendacion', flat=True))
+        if evento != None:
+            if evento != "Streak": 
+                color_queries = Q()
+                for color_item in colors:
+                    color_queries |= Q(etiquetas__Color__contains=[color_item])
+                ids = list(Recomendaciones.objects.filter(
+                    color_queries,
+                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                    tipo__icontains="Ropa", 
+                    rankings__isnull=True,
+                    etiquetas__Evento__contains=evento,
+                ).values_list('idrecomendacion', flat=True))
+            else: # ******************* STREAK FUNCTION ***********************
+                streak_type = data.get('streak_type')
+                if streak_type == "Mi estilo":
+                    color_queries = Q()
+                    for color_item in colors:
+                        color_queries |= Q(etiquetas__Color__contains=[color_item])
+                    ids = list(Recomendaciones.objects.filter(
+                            color_queries,
+                            (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                            tipo__icontains="Ropa", 
+                            rankings__isnull=True,
+                            etiquetas__Estilo__contains=style.ropa,
+                        ).values_list('idrecomendacion', flat=True))
+                elif streak_type == "Experimentar":
+                    ids = list(Recomendaciones.objects.filter(
+                            (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                            tipo__icontains="Ropa", 
+                            rankings__isnull=True,
+                        ).values_list('idrecomendacion', flat=True))
         else: # ******************* USING STYLE ***********************
             if prob < ropa: # ***** ROPA *****
                 color_queries = Q()
@@ -852,22 +872,22 @@ class StreakView(APIView):
             )
         
         if not created:
-            
-            if (timezone.now() - streak.ultimasesion).days == 1:
-                streak.dias += 1
-                streak.ultimasesion = timezone.now()
-                streak.save()
-                return JsonResponse({'message': '¡Haz aumentado la racha a '+ str(streak.dias) + ' dias!',
-                                     'dias': streak.dias}, status=200)
-            elif (timezone.now() - streak.ultimasesion).days == 0:
-                return JsonResponse({'message': 'Ya utilizaste tu aumento de racha hoy.',
-                                     'dias': streak.dias}, status=200)
-            else:
-                streak.dias = 1
-                streak.ultimasesion = timezone.now()
-                streak.save()
-                return JsonResponse({'message': 'Tu racha se ha reiniciado a 1 dia.',
-                                     'dias': streak.dias}, status=200)
+            with transaction.atomic():
+                if (timezone.now() - streak.ultimasesion).days == 1:
+                    streak.dias += 1
+                    streak.ultimasesion = timezone.now()
+                    streak.save()
+                    return JsonResponse({'message': '¡Haz aumentado la racha a '+ str(streak.dias) + ' dias!',
+                                        'dias': streak.dias}, status=200)
+                elif (timezone.now() - streak.ultimasesion).days == 0:
+                    return JsonResponse({'message': 'Ya utilizaste tu aumento de racha hoy.',
+                                        'dias': streak.dias}, status=200)
+                else:
+                    streak.dias = 1
+                    streak.ultimasesion = timezone.now()
+                    streak.save()
+                    return JsonResponse({'message': 'Tu racha se ha reiniciado a 1 dia.',
+                                        'dias': streak.dias}, status=200)
         else:
             return JsonResponse({'message': 'Tu racha ha comenzado!',
                                      'dias': streak.dias}, status=200)
