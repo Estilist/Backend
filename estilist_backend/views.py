@@ -635,16 +635,39 @@ class ClothesRecomendation(APIView):
         # ******************* USING EVENT ***********************
         if evento != None:
             if evento != "Streak": 
-                color_queries = Q()
-                for color_item in colors:
-                    color_queries |= Q(etiquetas__Color__contains=[color_item])
-                ids = list(Recomendaciones.objects.filter(
-                    color_queries,
-                    (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
-                    tipo__icontains="Ropa", 
-                    rankings__isnull=True,
-                    etiquetas__Evento__contains=evento,
-                ).values_list('idrecomendacion', flat=True))
+                if evento == "accesorios":
+                    if prob < 0.50:
+                        color_queries = Q()
+                        for color_item in colors:
+                            color_queries |= Q(etiquetas__Color__contains=[color_item])
+                        ids = list(Recomendaciones.objects.filter(
+                            color_queries,
+                            (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                            tipo__icontains="Accesorio", 
+                            rankings__isnull=True,
+                            etiquetas__Estilo__contains=style.accesorios,
+                        ).values_list('idrecomendacion', flat=True))
+                    else:
+                        jewels_queries = Q()
+                        for jewel in jewels:
+                            jewels_queries |= Q(tipo__icontains="Joyería") & Q(etiquetas__Color__contains=[jewel])
+                        ids = list(Recomendaciones.objects.filter(
+                            jewels_queries,
+                            (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                            tipo__icontains="Joyería", 
+                            rankings__isnull=True,
+                        ).values_list('idrecomendacion', flat=True))
+                else:
+                    color_queries = Q()
+                    for color_item in colors:
+                        color_queries |= Q(etiquetas__Color__contains=[color_item])
+                    ids = list(Recomendaciones.objects.filter(
+                        color_queries,
+                        (Q(genero__contains=style.recomendaciones) | Q(genero__contains="Unisex")), 
+                        tipo__icontains="Ropa", 
+                        rankings__isnull=True,
+                        etiquetas__Evento__contains=evento,
+                    ).values_list('idrecomendacion', flat=True))
             else: # ******************* STREAK FUNCTION ***********************
                 streak_type = data.get('streak_type')
                 if streak_type == "Mi estilo":
