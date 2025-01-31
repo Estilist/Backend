@@ -1,70 +1,24 @@
-# Django REST Framework API Example
+# Estilist ⚙️
 
-This is a simple Django project demonstrating basic CRUD operations for a `Data` model using the Django REST Framework.
+En este repositorio se encuentra el backend de la pagina web de **Estilist**.
 
-## Installation
+![Python](https://img.shields.io/badge/Python-3.12-blue.svg)
+![Django](https://img.shields.io/badge/Django-4.2-green.svg)
+![REST API](https://img.shields.io/badge/REST-API-orange.svg)
+![Azure](https://img.shields.io/badge/Azure-Cloud-blue.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue.svg)
 
-1. Clone the repository:
+## 🚀 Tecnologías Utilizadas
 
-   ```bash
-   git clone https://github.com/nassrkhan/Django-Rest-API-Project.git
-2. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-3. Apply database migrations:
-  ```bash python manage.py migrate```
-4. Run the development server:
-  ```bash python manage.py runserver```
-The API will be accessible at http://127.0.0.1:8000/.
+- **Python 3.12** - Lenguaje de programación principal.
+- **Django 4.2** - Framework backend.
+- **Django REST Framework** - Para la creación de API REST.
+- **PostgreSQL** - Base de datos relacional en la nube.
+- **Azure Blob Storage** - Almacenamiento de imágenes y archivos.
+- **GitHub Actions** - CI/CD para despliegue automático en Azure.
+- **Azure Web Apps** - Despliegue del backend en la nube.
 
-API Endpoints
-1. Get Data
-URL: /data/
-Method: GET
-Description: Retrieve a list of all data objects.
-2. Post Data
-URL: /data/new/
+## 🌍 Despliegue en Azure
 
-Method: POST
-
-Description: Create a new data object.
-
-Data Format:
-
-json
-Copy code
-{
-  "name": "Example Name",
-  "description": "Example Description"
-}
-3. Get Data Detail
-URL: /data/<int:pk>/
-Method: GET
-Description: Retrieve details of a specific data object.
-4. Put Data
-URL: /data/<int:pk>/edit/
-
-Method: PUT
-
-Description: Update details of a specific data object.
-
-Data Format:
-
-json
-Copy code
-{
-  "name": "Updated Name",
-  "description": "Updated Description"
-}
-5. Delete Data
-URL: /data/<int:pk>/delete/
-Method: DELETE
-Description: Delete a specific data object.
-Example Usage
-Using curl
-Create a new data object:
-
-```bash curl -X POST -H "Content-Type: application/json" -d '{"name": "New Data", "description": "New Description"}' http://127.0.0.1:8000/data/new/```
-Get all data:
-```bash curl http://127.0.0.1:8000/data/```
+El backend está configurado para desplegarse automáticamente en **Azure Web Apps** mediante **GitHub Actions**.
 
